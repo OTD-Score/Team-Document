@@ -1,0 +1,60 @@
+{
+  "name": "magenta-studio",
+  "version": "2.0.0",
+  "description": "Magenta Studio plugins as Standalone applications and for Ableton Live",
+  "main": "wrong.js",
+  "scripts": {
+    "build": "webpack --mode=production --env production",
+    "download:models": "node ./scripts/download_models",
+    "lint": "eslint client magenta4live.amxd/code --ignore-pattern magenta4live.amxd/code/public",
+    "postinstall": "npm run download:models; cd magenta4live.amxd; npm install",
+    "watch": "webpack -w --mode=development --env development"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tensorflow/magenta-studio"
+  },
+  "author": "Magenta Team (https://g.co/magenta)",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": "~18"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.16.0",
+    "@babel/helper-compilation-targets": "^7.16.0",
+    "@babel/plugin-proposal-class-properties": "^7.16.0",
+    "@babel/plugin-proposal-decorators": "^7.16.0",
+    "@babel/polyfill": "^7.0.0",
+    "@babel/preset-env": "^7.16.0",
+    "@polymer/polymer": "^3.4.1",
+    "babel-loader": "^8.2.3",
+    "buffer": "^6.0.3",
+    "chroma-js": "^2.1.2",
+    "colors": "^1.4.0",
+    "core-js": "^3.27.1",
+    "css-loader": "^6.5.0",
+    "eslint": "^8.31.0",
+    "file-loader": "^6.2.0",
+    "fs-extra": "^10.0.0",
+    "glob": "^7.2.0",
+    "glob-promise": "^4.2.2",
+    "html-webpack-plugin": "^5.5.0",
+    "lit": "^2.0.2",
+    "navigo": "^8.11.1",
+    "request": "^2.88.0",
+    "sass": "^1.57.0",
+    "sass-loader": "^12.3.0",
+    "string-to-dom": "^0.1.5",
+    "style-loader": "^3.3.1",
+    "throttle-debounce": "^3.0.1",
+    "tmp": "0.2.1",
+    "webpack": "^5.76.0",
+    "webpack-cli": "^5.0.1",
+    "whatwg-fetch": "^3.6.2",
+    "yargs": "^17.2.1"
+  },
+  "dependencies": {
+    "@magenta/music": "^1.23.1",
+    "tmp-promise": "^3.0.3"
+  }
+}

@@ -1,18 +1,17 @@
-# Copyright 2023 The MT3 Authors.
+# 版权声明
+# 2023 年 MT3 作者
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# 根据 Apache 许可证 2.0 版（"许可证"）获得许可;
+# 除非符合许可证的规定，否则您不能使用此文件。
+# 您可以在以下网址获取许可证的副本：
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# 除非适用法律要求或书面同意，本软件是基于"按原样"的基础分发的，
+# 没有任何明示或暗示的担保或条件。
+# 有关特定语言的权限和限制，请参阅许可证。
 
-"""Feature converter and model for continuous inputs."""
+"""连续输入的特征转换器和模型。"""
 
 from typing import Mapping
 import seqio
@@ -20,9 +19,9 @@ from t5x import decoding
 from t5x import models
 import tensorflow as tf
 
-
+# 连续输入的特征转换器类
 class ContinuousInputsEncDecFeatureConverter(seqio.FeatureConverter):
-  """Feature converter for an encoder-decoder with continuous inputs."""
+  """具有连续输入的编码器-解码器的特征转换器。"""
 
   TASK_FEATURES = {
       "inputs": seqio.FeatureConverter.FeatureSpec(dtype=tf.float32, rank=2),
@@ -48,32 +47,31 @@ class ContinuousInputsEncDecFeatureConverter(seqio.FeatureConverter):
   def _convert_features(
       self, ds: tf.data.Dataset,
       task_feature_lengths: Mapping[str, int]) -> tf.data.Dataset:
-    """Convert the dataset to be fed to the encoder-decoder model.
+    """将数据集转换为用于编码器-解码器模型的格式。
 
-    The conversion process involves three steps
+    转换过程包括三个步骤：
 
-    1. Each feature in the `task_feature_lengths` is trimmed/padded and
-       optionally packed depending on the value of self.pack.
-    2. "inputs" fields are mapped to the encoder input and "targets" are mapped
-       to decoder input (after being shifted) and target.
+    1. 对 `task_feature_lengths` 中的每个特征进行修剪/填充，
+       根据 self.pack 的值进行可选的打包。
+    2. 将 "inputs" 字段映射到编码器输入，将 "targets" 映射到解码器输入（经过移位）和目标。
+    3. 通过检查 self.pack 的值，决定是否对数据集进行打包。
 
-    All the keys in the `task_feature_lengths` should be present in the input
-    dataset, which may contain some extra features that are not in the
-    `task_feature_lengths`. They will not be included in the output dataset.
-    One common scenario is the "inputs_pretokenized" and "targets_pretokenized"
-    fields.
+    `task_feature_lengths` 中的所有键都应该存在于输入数据集中，
+    输入数据集可能包含一些不在 `task_feature_lengths` 中的额外特征。
+    这些特征将不包含在输出数据集中。常见的情况是 "inputs_pretokenized"
+    和 "targets_pretokenized" 字段。
 
     Args:
-      ds: an input tf.data.Dataset to be converted.
-      task_feature_lengths: a mapping from feature to its length.
+      ds: 要转换的输入 tf.data.Dataset。
+      task_feature_lengths: 特征和其长度的映射。
 
     Returns:
-      ds: the converted dataset.
+      ds: 转换后的数据集。
     """
 
     def convert_example(
         features: Mapping[str, tf.Tensor]) -> Mapping[str, tf.Tensor]:
-      # targets_segment_id is present only for a packed dataset.
+      # 对于打包的数据集，targets_segment_id 仅在其中。
       decoder_input_tokens = seqio.autoregressive_inputs(
           features["targets"],
           sequence_id=features.get("targets_segment_ids", None))
@@ -81,7 +79,7 @@ class ContinuousInputsEncDecFeatureConverter(seqio.FeatureConverter):
       d = {"encoder_input_tokens": features["inputs"],
            "decoder_target_tokens": features["targets"],
            "decoder_input_tokens": decoder_input_tokens,
-           # Loss is computed for all but the padding positions.
+           # 计算除填充位置之外的所有位置的损失。
            "decoder_loss_weights":
                seqio.non_padding_position(features["targets"])}
 
@@ -99,7 +97,7 @@ class ContinuousInputsEncDecFeatureConverter(seqio.FeatureConverter):
 
   def get_model_feature_lengths(
       self, task_feature_lengths: Mapping[str, int]) -> Mapping[str, int]:
-    """Define the length relationship between input and output features."""
+    """定义输入和输出特征之间的长度关系。"""
     encoder_length = task_feature_lengths["inputs"]
     decoder_length = task_feature_lengths["targets"]
 
@@ -118,8 +116,9 @@ class ContinuousInputsEncDecFeatureConverter(seqio.FeatureConverter):
     return model_feature_lengths
 
 
+# 具有连续输入的编码器-解码器模型类
 class ContinuousInputsEncoderDecoderModel(models.EncoderDecoderModel):
-  """Encoder-decoder model with continuous inputs."""
+  """具有连续输入的编码器-解码器模型。"""
 
   FEATURE_CONVERTER_CLS = ContinuousInputsEncDecFeatureConverter
 
@@ -138,7 +137,7 @@ class ContinuousInputsEncoderDecoderModel(models.EncoderDecoderModel):
     self._input_depth = input_depth
 
   def get_initial_variables(self, rng, input_shapes, input_types=None):
-    """Hacky override to bypass eval/infer inability to handle rank-3 inputs."""
+    """为了绕过评估/推断不能处理秩为 3 的输入的问题，使用 hacky 覆盖。"""
     encoder_shape = input_shapes["encoder_input_tokens"]
     if len(encoder_shape) == 2:
       input_shapes = {

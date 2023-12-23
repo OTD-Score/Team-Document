@@ -1,18 +1,14 @@
 # Copyright 2023 The MT3 Authors.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# 版权声明
 
+# Licensed under the Apache License, Version 2.0 (the "License");
+# 本代码基于Apache许可证2.0版本
+
+# 你可能不会使用此文件，除非符合许可证的规定。
+# 除非适用法律要求或书面同意，软件根据“原样”分发，不附带任何形式的担保或条件，无论是明示的还是暗示的。
+# 请参阅许可证获取许可证的特定语言的副本详细信息和限制。
 """T5.1.1 Transformer model."""
+# T5.1.1 Transformer模型
 
 from typing import Any, Sequence
 
@@ -21,12 +17,12 @@ from flax import struct
 import jax.numpy as jnp
 from mt3 import layers
 
-
+# 定义T5模型的全局超参数配置类
 @struct.dataclass
 class T5Config:
-  """Global hyperparameters used to minimize obnoxious kwarg plumbing."""
+  """用于减少冗长的关键字参数的全局超参数配置"""
+  # 词汇表大小
   vocab_size: int
-  # Activation dtypes.
   dtype: Any = jnp.float32
   emb_dim: int = 512
   num_heads: int = 8
@@ -34,27 +30,26 @@ class T5Config:
   num_decoder_layers: int = 6
   head_dim: int = 64
   mlp_dim: int = 2048
-  # Activation functions are retrieved from Flax.
   mlp_activations: Sequence[str] = ('relu',)
   dropout_rate: float = 0.1
-  # If `True`, the embedding weights are used in the decoder output layer.
   logits_via_embedding: bool = False
 
-
+# 定义Transformer编码器层
 class EncoderLayer(nn.Module):
-  """Transformer encoder layer."""
+  """Transformer编码器层."""
   config: T5Config
 
   @nn.compact
   def __call__(self, inputs, encoder_mask=None, deterministic=False):
     cfg = self.config
 
-    # Attention block.
+    # 注意力块
     assert inputs.ndim == 3
+    # 层归一化
     x = layers.LayerNorm(
         dtype=cfg.dtype, name='pre_attention_layer_norm')(
             inputs)
-    # [batch, length, emb_dim] -> [batch, length, emb_dim]
+    # 多头自注意力机制
     x = layers.MultiHeadDotProductAttention(
         num_heads=cfg.num_heads,
         dtype=cfg.dtype,
@@ -62,14 +57,16 @@ class EncoderLayer(nn.Module):
         dropout_rate=cfg.dropout_rate,
         name='attention')(
             x, x, encoder_mask, deterministic=deterministic)
+    # 丢弃
     x = nn.Dropout(
         rate=cfg.dropout_rate, broadcast_dims=(-2,))(
             x, deterministic=deterministic)
+    # 残差连接
     x = x + inputs
 
-    # MLP block.
+    # MLP块
     y = layers.LayerNorm(dtype=cfg.dtype, name='pre_mlp_layer_norm')(x)
-    # [batch, length, emb_dim] -> [batch, length, emb_dim]
+    # 多层感知机（MLP）块
     y = layers.MlpBlock(
         intermediate_dim=cfg.mlp_dim,
         activations=cfg.mlp_activations,
@@ -77,16 +74,18 @@ class EncoderLayer(nn.Module):
         dtype=cfg.dtype,
         name='mlp',
     )(y, deterministic=deterministic)
+    # 丢弃
     y = nn.Dropout(
         rate=cfg.dropout_rate, broadcast_dims=(-2,))(
             y, deterministic=deterministic)
+    # 残差连接
     y = y + x
 
     return y
 
-
+# 定义Transformer解码器层
 class DecoderLayer(nn.Module):
-  """Transformer decoder layer that attends to the encoder."""
+  """Transformer解码器层，注意力机制与编码器交互."""
   config: T5Config
 
   @nn.compact
@@ -100,12 +99,11 @@ class DecoderLayer(nn.Module):
                max_decode_length=None):
     cfg = self.config
 
-    # inputs: embedded inputs to the decoder with shape [batch, length, emb_dim]
+    # 自注意力块
     x = layers.LayerNorm(
         dtype=cfg.dtype, name='pre_self_attention_layer_norm')(
             inputs)
 
-    # Self-attention block
     x = layers.MultiHeadDotProductAttention(
         num_heads=cfg.num_heads,
         dtype=cfg.dtype,
@@ -122,7 +120,7 @@ class DecoderLayer(nn.Module):
             x, deterministic=deterministic)
     x = x + inputs
 
-    # Encoder-Decoder block.
+    # 编码器-解码器块
     y = layers.LayerNorm(
         dtype=cfg.dtype, name='pre_cross_attention_layer_norm')(
             x)
@@ -138,7 +136,7 @@ class DecoderLayer(nn.Module):
             y, deterministic=deterministic)
     y = y + x
 
-    # MLP block.
+    # MLP块
     z = layers.LayerNorm(dtype=cfg.dtype, name='pre_mlp_layer_norm')(y)
     z = layers.MlpBlock(
         intermediate_dim=cfg.mlp_dim,
@@ -154,9 +152,9 @@ class DecoderLayer(nn.Module):
 
     return z
 
-
+# 定义Transformer编码器
 class Encoder(nn.Module):
-  """A stack of encoder layers."""
+  """编码器层堆叠."""
   config: T5Config
 
   @nn.compact
@@ -171,7 +169,7 @@ class Encoder(nn.Module):
     inputs_positions = jnp.arange(seq_length)[None, :]
 
     # [batch, length, depth] -> [batch, length, emb_dim]
-    x = layers.DenseGeneral(  # pytype: disable=wrong-arg-types  # jax-types
+    x = layers.DenseGeneral(  
         cfg.emb_dim,
         dtype=cfg.dtype,
         kernel_init=nn.linear.default_kernel_init,
@@ -184,7 +182,6 @@ class Encoder(nn.Module):
     x = x.astype(cfg.dtype)
 
     for lyr in range(cfg.num_encoder_layers):
-      # [batch, length, emb_dim] -> [batch, length, emb_dim]
       x = EncoderLayer(
           config=cfg,
           name=f'layers_{lyr}')(x, encoder_mask, deterministic)
@@ -192,9 +189,9 @@ class Encoder(nn.Module):
     x = layers.LayerNorm(dtype=cfg.dtype, name='encoder_norm')(x)
     return nn.Dropout(rate=cfg.dropout_rate)(x, deterministic=deterministic)
 
-
+# 定义Transformer解码器
 class Decoder(nn.Module):
-  """A stack of decoder layers as a part of an encoder-decoder architecture."""
+  """解码器层堆叠，作为编码器-解码器架构的一部分."""
   config: T5Config
 
   @nn.compact
@@ -214,11 +211,11 @@ class Decoder(nn.Module):
     decoder_positions = jnp.arange(seq_length)[None, :]
 
     # [batch, length] -> [batch, length, emb_dim]
-    y = layers.Embed(  # pytype: disable=wrong-arg-types  # jax-types
+    y = layers.Embed(  
         num_embeddings=cfg.vocab_size,
         features=cfg.emb_dim,
         dtype=cfg.dtype,
-        attend_dtype=jnp.float32,  # for logit training stability
+        attend_dtype=jnp.float32,  
         embedding_init=nn.initializers.normal(stddev=1.0),
         one_hot=True,
         name='token_embedder')(decoder_input_tokens.astype('int32'))
@@ -230,7 +227,6 @@ class Decoder(nn.Module):
     y = y.astype(cfg.dtype)
 
     for lyr in range(cfg.num_decoder_layers):
-      # [batch, length, emb_dim] -> [batch, length, emb_dim]
       y = DecoderLayer(
           config=cfg, name=f'layers_{lyr}')(
               y,
@@ -248,22 +244,20 @@ class Decoder(nn.Module):
 
     # [batch, length, emb_dim] -> [batch, length, vocab_size]
     if cfg.logits_via_embedding:
-      # Use the transpose of embedding matrix for logit transform.
       logits = self.shared_embedding.attend(y)
-      # Correctly normalize pre-softmax logits for this shared case.
       logits = logits / jnp.sqrt(y.shape[-1])
     else:
       logits = layers.DenseGeneral(
           cfg.vocab_size,
-          dtype=jnp.float32,  # Use float32 for stabiliity.
+          dtype=jnp.float32,  
           kernel_axes=('embed', 'vocab'),
           name='logits_dense')(
               y)
     return logits
 
-
+# 定义Transformer模型
 class Transformer(nn.Module):
-  """An encoder-decoder Transformer model."""
+  """编码器-解码器 Transformer 模型."""
   config: T5Config
 
   def setup(self):
@@ -276,18 +270,14 @@ class Transformer(nn.Module):
              encoder_input_tokens,
              encoder_segment_ids=None,
              enable_dropout=True):
-    """Applies Transformer encoder-branch on the inputs."""
+    """对输入应用Transformer编码器分支."""
     cfg = self.config
-    assert encoder_input_tokens.ndim == 3  # (batch, length, depth)
+    assert encoder_input_tokens.ndim == 3  
 
-    # Make padding attention mask; we don't actually mask out any input
-    # positions, letting the model potentially attend to the zero vector used as
-    # padding.
     encoder_mask = layers.make_attention_mask(
         jnp.ones(encoder_input_tokens.shape[:-1]),
         jnp.ones(encoder_input_tokens.shape[:-1]),
         dtype=cfg.dtype)
-    # Add segmentation block-diagonal attention mask if using segmented data.
     if encoder_segment_ids is not None:
       encoder_mask = layers.combine_masks(
           encoder_mask,
@@ -303,7 +293,7 @@ class Transformer(nn.Module):
   def decode(
       self,
       encoded,
-      encoder_input_tokens,  # only needed for masks
+      encoder_input_tokens,  
       decoder_input_tokens,
       decoder_target_tokens,
       encoder_segment_ids=None,
@@ -312,13 +302,10 @@ class Transformer(nn.Module):
       enable_dropout=True,
       decode=False,
       max_decode_length=None):
-    """Applies Transformer decoder-branch on encoded-input and target."""
+    """对编码输入和目标应用Transformer解码器分支."""
     cfg = self.config
 
-    # Make padding attention masks.
     if decode:
-      # Do not mask decoder attention based on targets padding at
-      # decoding/inference time.
       decoder_mask = None
       encoder_decoder_mask = layers.make_attention_mask(
           jnp.ones_like(decoder_target_tokens),
@@ -334,12 +321,10 @@ class Transformer(nn.Module):
           jnp.ones(encoder_input_tokens.shape[:-1]),
           dtype=cfg.dtype)
 
-    # Add segmentation block-diagonal attention masks if using segmented data.
     if encoder_segment_ids is not None:
       if decode:
         raise ValueError(
-            'During decoding, packing should not be used but '
-            '`encoder_segment_ids` was passed to `Transformer.decode`.')
+            '在解码期间，不应使用分段，但`encoder_segment_ids`被传递到`Transformer.decode`。')
 
       encoder_decoder_mask = layers.combine_masks(
           encoder_decoder_mask,
@@ -371,26 +356,24 @@ class Transformer(nn.Module):
                *,
                enable_dropout: bool = True,
                decode: bool = False):
-    """Applies Transformer model on the inputs.
+    """对输入应用Transformer模型.
 
-    This method requires both decoder_target_tokens and decoder_input_tokens,
-    which is a shifted version of the former. For a packed dataset, it usually
-    has additional processing applied. For example, the first element of each
-    sequence has id 0 instead of the shifted EOS id from the previous sequence.
+    该方法需要decoder_target_tokens和decoder_input_tokens，decoder_input_tokens是前者的位移版本。
+    对于打包的数据集，通常应用了额外的处理。例如，每个序列的第一个元素的ID是0，而不是上一个序列的位移EOS ID。
 
-    Args:
-      encoder_input_tokens: input data to the encoder.
-      decoder_input_tokens: input token to the decoder.
-      decoder_target_tokens: target token to the decoder.
-      encoder_segment_ids: encoder segmentation info for packed examples.
-      decoder_segment_ids: decoder segmentation info for packed examples.
-      encoder_positions: encoder subsequence positions for packed examples.
-      decoder_positions: decoder subsequence positions for packed examples.
-      enable_dropout: Ensables dropout if set to True.
-      decode: Whether to prepare and use an autoregressive cache.
+    参数:
+      encoder_input_tokens: 输入数据到编码器.
+      decoder_input_tokens: 输入到解码器的标记.
+      decoder_target_tokens: 解码器的目标标记.
+      encoder_segment_ids: 用于打包示例的编码器分段信息.
+      decoder_segment_ids: 用于打包示例的解码器分段信息.
+      encoder_positions: 打包示例的编码器子序列位置.
+      decoder_positions: 打包示例的解码器子序列位置.
+      enable_dropout: 如果设置为True，则启用丢弃.
+      decode: 是否准备和使用自回归缓存.
 
-    Returns:
-      logits array from full transformer.
+    返回:
+      完整Transformer模型的logits数组.
     """
     encoded = self.encode(
         encoder_input_tokens,
@@ -399,7 +382,7 @@ class Transformer(nn.Module):
 
     return self.decode(
         encoded,
-        encoder_input_tokens,  # only used for masks
+        encoder_input_tokens,  
         decoder_input_tokens,
         decoder_target_tokens,
         encoder_segment_ids=encoder_segment_ids,

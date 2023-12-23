@@ -1,112 +1,113 @@
-# Copyright 2023 The MT3 Authors.
+# 版权声明
+# 2023 年 MT3 作者
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# 根据 Apache 许可证 2.0 版（"许可证"）获得许可;
+# 除非符合许可证的规定，否则您不能使用此文件。
+# 您可以在以下网址获取许可证的副本：
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# 除非适用法律要求或书面同意，本软件是基于"按原样"的基础分发的，
+# 没有任何明示或暗示的担保或条件。
+# 有关特定语言的权限和限制，请参阅许可证。
 
-"""Encode and decode events."""
+"""事件的编码和解码。"""
 
 import dataclasses
 from typing import List, Tuple
 
+# 事件范围数据类
+
 
 @dataclasses.dataclass
 class EventRange:
-  type: str
-  min_value: int
-  max_value: int
+    type: str      # 事件类型
+    min_value: int  # 最小值
+    max_value: int  # 最大值
+
+# 事件数据类
 
 
 @dataclasses.dataclass
 class Event:
-  type: str
-  value: int
+    type: str  # 事件类型
+    value: int  # 事件值
+
+# 编码器类
 
 
 class Codec:
-  """Encode and decode events.
+    """对事件进行编码和解码。
 
-  Useful for declaring what certain ranges of a vocabulary should be used for.
-  This is intended to be used from Python before encoding or after decoding with
-  GenericTokenVocabulary. This class is more lightweight and does not include
-  things like EOS or UNK token handling.
+    适用于声明词汇表的某些范围应用于令牌化之前或解码后的情况。
+    此类旨在在使用 GenericTokenVocabulary 进行编码或解码之前从 Python 中使用。
+    此类更轻量级，不包括 EOS 或 UNK 标记处理等功能。
 
-  To ensure that 'shift' events are always the first block of the vocab and
-  start at 0, that event type is required and specified separately.
-  """
-
-  def __init__(self, max_shift_steps: int, steps_per_second: float,
-               event_ranges: List[EventRange]):
-    """Define Codec.
-
-    Args:
-      max_shift_steps: Maximum number of shift steps that can be encoded.
-      steps_per_second: Shift steps will be interpreted as having a duration of
-          1 / steps_per_second.
-      event_ranges: Other supported event types and their ranges.
+    为了确保'shift'事件始终是词汇的第一个块，并从 0 开始，该事件类型是必需的并分别指定。
     """
-    self.steps_per_second = steps_per_second
-    self._shift_range = EventRange(
-        type='shift', min_value=0, max_value=max_shift_steps)
-    self._event_ranges = [self._shift_range] + event_ranges
-    # Ensure all event types have unique names.
-    assert len(self._event_ranges) == len(
-        set([er.type for er in self._event_ranges]))
 
-  @property
-  def num_classes(self) -> int:
-    return sum(er.max_value - er.min_value + 1 for er in self._event_ranges)
+    def __init__(self, max_shift_steps: int, steps_per_second: float,
+                 event_ranges: List[EventRange]):
+        """定义编码器。
 
-  # The next couple methods are simplified special case methods just for shift
-  # events that are intended to be used from within autograph functions.
+        Args:
+          max_shift_steps: 可以编码的最大移位步数。
+          steps_per_second: 移位步数将被解释为持续时间为 1 / steps_per_second。
+          event_ranges: 其他支持的事件类型及其范围。
+        """
+        self.steps_per_second = steps_per_second
+        self._shift_range = EventRange(
+            type='shift', min_value=0, max_value=max_shift_steps)
+        self._event_ranges = [self._shift_range] + event_ranges
+        # 确保所有事件类型都具有唯一名称。
+        assert len(self._event_ranges) == len(
+            set([er.type for er in self._event_ranges]))
 
-  def is_shift_event_index(self, index: int) -> bool:
-    return (self._shift_range.min_value <= index) and (
-        index <= self._shift_range.max_value)
+    @property
+    def num_classes(self) -> int:
+        return sum(er.max_value - er.min_value + 1 for er in self._event_ranges)
 
-  @property
-  def max_shift_steps(self) -> int:
-    return self._shift_range.max_value
+    # 下面的几个方法是专为 'shift' 事件的简化特殊情况而设计的，
+    # 旨在从 autograph 函数内部使用。
 
-  def encode_event(self, event: Event) -> int:
-    """Encode an event to an index."""
-    offset = 0
-    for er in self._event_ranges:
-      if event.type == er.type:
-        if not er.min_value <= event.value <= er.max_value:
-          raise ValueError(
-              f'Event value {event.value} is not within valid range '
-              f'[{er.min_value}, {er.max_value}] for type {event.type}')
-        return offset + event.value - er.min_value
-      offset += er.max_value - er.min_value + 1
+    def is_shift_event_index(self, index: int) -> bool:
+        return (self._shift_range.min_value <= index) and (
+            index <= self._shift_range.max_value)
 
-    raise ValueError(f'Unknown event type: {event.type}')
+    @property
+    def max_shift_steps(self) -> int:
+        return self._shift_range.max_value
 
-  def event_type_range(self, event_type: str) -> Tuple[int, int]:
-    """Return [min_id, max_id] for an event type."""
-    offset = 0
-    for er in self._event_ranges:
-      if event_type == er.type:
-        return offset, offset + (er.max_value - er.min_value)
-      offset += er.max_value - er.min_value + 1
+    def encode_event(self, event: Event) -> int:
+        """将事件编码为索引。"""
+        offset = 0
+        for er in self._event_ranges:
+            if event.type == er.type:
+                if not er.min_value <= event.value <= er.max_value:
+                    raise ValueError(
+                        f'事件值 {event.value} 不在类型 {event.type} 的有效范围内 [{er.min_value}, {er.max_value}]')
+                return offset + event.value - er.min_value
+            offset += er.max_value - er.min_value + 1
 
-    raise ValueError(f'Unknown event type: {event_type}')
+        raise ValueError(f'未知事件类型: {event.type}')
 
-  def decode_event_index(self, index: int) -> Event:
-    """Decode an event index to an Event."""
-    offset = 0
-    for er in self._event_ranges:
-      if offset <= index <= offset + er.max_value - er.min_value:
-        return Event(
-            type=er.type, value=er.min_value + index - offset)
-      offset += er.max_value - er.min_value + 1
+    def event_type_range(self, event_type: str) -> Tuple[int, int]:
+        """返回事件类型的 [min_id, max_id]。"""
+        offset = 0
+        for er in self._event_ranges:
+            if event_type == er.type:
+                return offset, offset + (er.max_value - er.min_value)
+            offset += er.max_value - er.min_value + 1
 
-    raise ValueError(f'Unknown event index: {index}')
+        raise ValueError(f'未知事件类型: {event_type}')
+
+    def decode_event_index(self, index: int) -> Event:
+        """将事件索引解码为事件。"""
+        offset = 0
+        for er in self._event_ranges:
+            if offset <= index <= offset + er.max_value - er.min_value:
+                return Event(
+                    type=er.type, value=er.min_value + index - offset)
+            offset += er.max_value - er.min_value + 1
+
+        raise ValueError(f'未知事件索引: {index}')

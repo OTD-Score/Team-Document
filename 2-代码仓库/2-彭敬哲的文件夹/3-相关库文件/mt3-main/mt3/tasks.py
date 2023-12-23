@@ -1,19 +1,21 @@
-# Copyright 2023 The MT3 Authors.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# 版权声明和许可证
+"""
+Copyright 2023 The MT3 Authors.
 
-"""Transcription task definitions."""
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
+
+# 转录任务定义
 import functools
 from typing import Optional, Sequence
 
@@ -32,19 +34,20 @@ import seqio
 import t5
 import tensorflow as tf
 
-# Split audio frame sequences into this length before the cache placeholder.
+# 将音频帧序列拆分为此长度，然后放入缓存占位符。
 MAX_NUM_CACHED_FRAMES = 2000
 
+# 添加全局缓存目录
 seqio.add_global_cache_dirs(['gs://mt3/data/cache_tasks/'])
 
-
+# 构造任务名称
 def construct_task_name(
     task_prefix: str,
     spectrogram_config=spectrograms.SpectrogramConfig(),
     vocab_config=vocabularies.VocabularyConfig(),
     task_suffix: Optional[str] = None
 ) -> str:
-  """Construct task name from prefix, config, and optional suffix."""
+  """从前缀、配置和可选后缀构造任务名称。"""
   fields = [task_prefix]
   if spectrogram_config.abbrev_str:
     fields.append(spectrogram_config.abbrev_str)
@@ -54,17 +57,17 @@ def construct_task_name(
     fields.append(task_suffix)
   return '_'.join(fields)
 
-
+# 移除 EOS 符号以及之后的所有内容
 def trim_eos(tokens: Sequence[int]) -> np.ndarray:
-  """If EOS is present, remove it and everything after."""
+  """如果存在 EOS，则删除它及其后的所有内容。"""
   tokens = np.array(tokens, np.int32)
   if vocabularies.DECODED_EOS_ID in tokens:
     tokens = tokens[:np.argmax(tokens == vocabularies.DECODED_EOS_ID)]
   return tokens
 
-
+# 转录后处理函数
 def postprocess(tokens, example, is_target, codec):
-  """Transcription postprocessing function."""
+  """转录后处理函数。"""
   tokens = trim_eos(tokens)
 
   if is_target:
@@ -76,7 +79,7 @@ def postprocess(tokens, example, is_target, codec):
     }
 
   start_time = example['input_times'][0]
-  # Round down to nearest symbolic token step.
+  # 向下舍入到最近的符号令牌步长。
   start_time -= start_time % (1 / codec.steps_per_second)
 
   return {
@@ -86,7 +89,7 @@ def postprocess(tokens, example, is_target, codec):
       'start_time': start_time
   }
 
-
+# 将音符转录任务添加到 seqio.TaskRegistry
 def add_transcription_task_to_registry(
     dataset_config: datasets.DatasetConfig,
     spectrogram_config: spectrograms.SpectrogramConfig,
@@ -96,7 +99,7 @@ def add_transcription_task_to_registry(
     include_ties: bool,
     skip_too_long: bool = False
 ) -> None:
-  """Add note transcription task to seqio.TaskRegistry."""
+  """将音符转录任务添加到 seqio.TaskRegistry。"""
   codec = vocabularies.build_codec(vocab_config)
   vocabulary = vocabularies.vocabulary_from_codec(codec)
 
@@ -105,6 +108,7 @@ def add_transcription_task_to_registry(
       'inputs': seqio.ContinuousFeature(dtype=tf.float32, rank=2)
   }
 
+  # 设置任务名称
   task_name = 'onsets' if onsets_only else 'notes'
   if include_ties:
     task_name += '_ties'
@@ -122,7 +126,7 @@ def add_transcription_task_to_registry(
   track_specs = (dataset_config.track_specs
                  if dataset_config.track_specs else None)
 
-  # Add transcription training task.
+  # 添加转录训练任务。
   seqio.TaskRegistry.add(
       train_task_name,
       source=seqio.TFExampleDataSource(
@@ -183,7 +187,7 @@ def add_transcription_task_to_registry(
       metric_fns=[],
   )
 
-  # Add transcription eval tasks.
+  # 添加转录评估任务。
   for split in dataset_config.infer_eval_splits:
     eval_task_name = construct_task_name(
         task_prefix=task_prefix,
@@ -214,9 +218,8 @@ def add_transcription_task_to_registry(
                 feature_key='inputs',
                 additional_feature_keys=['input_times', 'sequence'],
                 passthrough_feature_keys=['unique_id']),
-            # Add dummy targets as they are dropped during the above split to
-            # avoid memory blowups, but expected to be present by seqio; the
-            # evaluation metrics currently only use the target NoteSequence.
+            # 添加虚拟目标，因为它们在上述拆分期间被丢弃，以避免内存暴涨，
+            # 但是 seqio 目前期望它们存在；目前的评估指标仅使用目标 NoteSequence。
             preprocessors.add_dummy_targets,
             functools.partial(
                 preprocessors.compute_spectrograms,
@@ -238,22 +241,21 @@ def add_transcription_task_to_registry(
         ],
     )
 
+  # 添加混合任务。
   seqio.MixtureRegistry.add(
       construct_task_name(
           task_prefix=task_prefix, spectrogram_config=spectrogram_config,
           vocab_config=vocab_config, task_suffix='eval'),
       mixture_task_names,
       default_rate=1)
-
-
-# Just use default spectrogram config.
+# 仅使用默认的频谱图配置。
 SPECTROGRAM_CONFIG = spectrograms.SpectrogramConfig()
 
-# Create two vocabulary configs, one default and one with only on-off velocity.
+# 创建两个词汇配置，一个默认的，一个仅包含开关速度。
 VOCAB_CONFIG_FULL = vocabularies.VocabularyConfig()
 VOCAB_CONFIG_NOVELOCITY = vocabularies.VocabularyConfig(num_velocity_bins=1)
 
-# Transcribe MAESTRO v1.
+# 转录 MAESTRO v1。
 add_transcription_task_to_registry(
     dataset_config=datasets.MAESTROV1_CONFIG,
     spectrogram_config=SPECTROGRAM_CONFIG,
@@ -265,7 +267,7 @@ add_transcription_task_to_registry(
     onsets_only=False,
     include_ties=False)
 
-# Transcribe MAESTRO v3.
+# 转录 MAESTRO v3。
 add_transcription_task_to_registry(
     dataset_config=datasets.MAESTROV3_CONFIG,
     spectrogram_config=SPECTROGRAM_CONFIG,
@@ -277,7 +279,7 @@ add_transcription_task_to_registry(
     onsets_only=False,
     include_ties=False)
 
-# Transcribe MAESTRO v3 without velocities, with ties.
+# 转录 MAESTRO v3，不包含速度，包含 tie。
 add_transcription_task_to_registry(
     dataset_config=datasets.MAESTROV3_CONFIG,
     spectrogram_config=SPECTROGRAM_CONFIG,
@@ -289,7 +291,7 @@ add_transcription_task_to_registry(
     onsets_only=False,
     include_ties=True)
 
-# Transcribe GuitarSet, with ties.
+# 转录 GuitarSet，包含 tie。
 add_transcription_task_to_registry(
     dataset_config=datasets.GUITARSET_CONFIG,
     spectrogram_config=SPECTROGRAM_CONFIG,
@@ -298,7 +300,7 @@ add_transcription_task_to_registry(
     onsets_only=False,
     include_ties=True)
 
-# Transcribe URMP mixes, with ties.
+# 转录 URMP mixes，包含 tie。
 add_transcription_task_to_registry(
     dataset_config=datasets.URMP_CONFIG,
     spectrogram_config=SPECTROGRAM_CONFIG,
@@ -310,7 +312,7 @@ add_transcription_task_to_registry(
     onsets_only=False,
     include_ties=True)
 
-# Transcribe MusicNet, with ties.
+# 转录 MusicNet，包含 tie。
 add_transcription_task_to_registry(
     dataset_config=datasets.MUSICNET_CONFIG,
     spectrogram_config=SPECTROGRAM_CONFIG,
@@ -322,7 +324,7 @@ add_transcription_task_to_registry(
     onsets_only=False,
     include_ties=True)
 
-# Transcribe MusicNetEM, with ties.
+# 转录 MusicNetEM，包含 tie。
 add_transcription_task_to_registry(
     dataset_config=datasets.MUSICNET_EM_CONFIG,
     spectrogram_config=SPECTROGRAM_CONFIG,
@@ -334,7 +336,7 @@ add_transcription_task_to_registry(
     onsets_only=False,
     include_ties=True)
 
-# Transcribe Cerberus4 (piano-guitar-bass-drums quartets), with ties.
+# 转录 Cerberus4（钢琴-吉他-低音吉他-鼓 四重奏），包含 tie。
 add_transcription_task_to_registry(
     dataset_config=datasets.CERBERUS4_CONFIG,
     spectrogram_config=SPECTROGRAM_CONFIG,
@@ -346,7 +348,7 @@ add_transcription_task_to_registry(
     onsets_only=False,
     include_ties=True)
 
-# Transcribe 10 random sub-mixes of each song from Slakh, with ties.
+# 转录 Slakh 每首歌的 10 个随机子混音，包含 tie。
 add_transcription_task_to_registry(
     dataset_config=datasets.SLAKH_CONFIG,
     spectrogram_config=SPECTROGRAM_CONFIG,
@@ -359,7 +361,7 @@ add_transcription_task_to_registry(
     include_ties=True)
 
 
-# Construct task names to include in transcription mixture.
+# 构造包含在转录混合中的任务名称。
 MIXTURE_DATASET_NAMES = [
     'maestrov3', 'guitarset', 'urmp', 'musicnet_em', 'cerberus4', 'slakh'
 ]
@@ -379,7 +381,7 @@ for dataset_name in MIXTURE_DATASET_NAMES:
                           task_suffix='validation'))
 MIXING_TEMPERATURE = 10 / 3
 
-# Add the mixture of all transcription tasks, with ties.
+# 添加所有转录任务的混合，包含 tie。
 seqio.MixtureRegistry.add(
     construct_task_name(
         task_prefix='mega_notes_ties',

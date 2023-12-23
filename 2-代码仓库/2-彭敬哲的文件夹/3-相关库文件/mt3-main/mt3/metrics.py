@@ -1,18 +1,17 @@
-# Copyright 2023 The MT3 Authors.
+# 版权声明
+# 2023 年 MT3 作者
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# 根据 Apache 许可证 2.0 版（"许可证"）获得许可;
+# 除非符合许可证的规定，否则您不能使用此文件。
+# 您可以在以下网址获取许可证的副本：
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# 除非适用法律要求或书面同意，本软件是基于"按原样"的基础分发的，
+# 没有任何明示或暗示的担保或条件。
+# 有关特定语言的权限和限制，请参阅许可证。
 
-"""Transcription metrics."""
+"""转录度量。"""
 
 import collections
 import copy
@@ -21,6 +20,7 @@ from typing import Any, Iterable, Mapping, Optional, Sequence
 
 import mir_eval
 
+# 导入 MT3 相关模块
 from mt3 import event_codec
 from mt3 import metrics_utils
 from mt3 import note_sequences
@@ -28,32 +28,34 @@ from mt3 import spectrograms
 from mt3 import summaries
 from mt3 import vocabularies
 
+# 导入额外的音乐理论库
 import note_seq
 import numpy as np
 import seqio
 
-
+# 带有程序的注意分数
 def _program_aware_note_scores(
     ref_ns: note_seq.NoteSequence,
     est_ns: note_seq.NoteSequence,
     granularity_type: str
 ) -> Mapping[str, float]:
-  """Compute precision/recall/F1 for notes taking program into account.
+  """考虑了程序的情况下计算音符的精度/召回/F1。
 
-  For non-drum tracks, uses onsets and offsets. For drum tracks, uses onsets
-  only. Applies MIDI program map of specified granularity type.
+  对于非鼓音轨，使用起始和终止。对于鼓音轨，仅使用起始。
+  应用指定粒度类型的 MIDI 程序映射。
 
   Args:
-    ref_ns: Reference NoteSequence with ground truth labels.
-    est_ns: Estimated NoteSequence.
-    granularity_type: String key in vocabularies.PROGRAM_GRANULARITIES dict.
+    ref_ns: 具有地面真实标签的参考 NoteSequence。
+    est_ns: 估计的 NoteSequence。
+    granularity_type: vocabularies.PROGRAM_GRANULARITIES 字典中的字符串键。
 
   Returns:
-    A dictionary containing precision, recall, and F1 score.
+    包含精度、召回和 F1 分数的字典。
   """
   program_map_fn = vocabularies.PROGRAM_GRANULARITIES[
       granularity_type].program_map_fn
 
+  # 深度拷贝参考和估计的 NoteSequence，以免修改原始数据
   ref_ns = copy.deepcopy(ref_ns)
   for note in ref_ns.notes:
     if not note.is_drum:
@@ -64,6 +66,7 @@ def _program_aware_note_scores(
     if not note.is_drum:
       note.program = program_map_fn(note.program)
 
+  # 获取所有可能的（程序，是否鼓）元组
   program_and_is_drum_tuples = (
       set((note.program, note.is_drum) for note in ref_ns.notes) |
       set((note.program, note.is_drum) for note in est_ns.notes)
@@ -80,14 +83,17 @@ def _program_aware_note_scores(
   nondrum_recall_count = 0
 
   for program, is_drum in program_and_is_drum_tuples:
+    # 提取特定程序和是否鼓的音轨
     est_track = note_sequences.extract_track(est_ns, program, is_drum)
     ref_track = note_sequences.extract_track(ref_ns, program, is_drum)
 
+    # 将音轨转换为值区间和音高
     est_intervals, est_pitches, unused_est_velocities = (
         note_seq.sequences_lib.sequence_to_valued_intervals(est_track))
     ref_intervals, ref_pitches, unused_ref_velocities = (
         note_seq.sequences_lib.sequence_to_valued_intervals(ref_track))
 
+    # 设置参数用于计算精度、召回和 F1
     args = {
         'ref_intervals': ref_intervals, 'ref_pitches': ref_pitches,
         'est_intervals': est_intervals, 'est_pitches': est_pitches
@@ -95,9 +101,11 @@ def _program_aware_note_scores(
     if is_drum:
       args['offset_ratio'] = None
 
+    # 计算精度、召回、F1 等
     precision, recall, unused_f_measure, unused_avg_overlap_ratio = (
         mir_eval.transcription.precision_recall_f1_overlap(**args))
 
+    # 根据是否鼓分别累加精度和召回
     if is_drum:
       drum_precision_sum += precision * len(est_intervals)
       drum_precision_count += len(est_intervals)
@@ -109,6 +117,7 @@ def _program_aware_note_scores(
       nondrum_recall_sum += recall * len(ref_intervals)
       nondrum_recall_count += len(ref_intervals)
 
+  # 计算总体精度和召回
   precision_sum = drum_precision_sum + nondrum_precision_sum
   precision_count = drum_precision_count + nondrum_precision_count
   recall_sum = drum_recall_sum + nondrum_recall_sum
@@ -118,6 +127,7 @@ def _program_aware_note_scores(
   recall = (recall_sum / recall_count) if recall_count else 0
   f_measure = mir_eval.util.f_measure(precision, recall)
 
+  # 计算鼓和非鼓的精度、召回和 F1
   drum_precision = ((drum_precision_sum / drum_precision_count)
                     if drum_precision_count else 0)
   drum_recall = ((drum_recall_sum / drum_recall_count)
@@ -130,27 +140,28 @@ def _program_aware_note_scores(
                     if nondrum_recall_count else 0)
   nondrum_f_measure = mir_eval.util.f_measure(nondrum_precision, nondrum_recall)
 
+  # 返回计算结果的字典
   return {
-      f'Onset + offset + program precision ({granularity_type})': precision,
-      f'Onset + offset + program recall ({granularity_type})': recall,
-      f'Onset + offset + program F1 ({granularity_type})': f_measure,
-      f'Drum onset precision ({granularity_type})': drum_precision,
-      f'Drum onset recall ({granularity_type})': drum_recall,
-      f'Drum onset F1 ({granularity_type})': drum_f_measure,
-      f'Nondrum onset + offset + program precision ({granularity_type})':
+      f'起始 + 终止 + 程序精度 ({granularity_type})': precision,
+      f'起始 + 终止 + 程序召回 ({granularity_type})': recall,
+      f'起始 + 终止 + 程序 F1 ({granularity_type})': f_measure,
+      f'鼓起始精度 ({granularity_type})': drum_precision,
+      f'鼓起始召回 ({granularity_type})': drum_recall,
+      f'鼓起始 F1 ({granularity_type})': drum_f_measure,
+      f'非鼓起始 + 终止 + 程序精度 ({granularity_type})':
           nondrum_precision,
-      f'Nondrum onset + offset + program recall ({granularity_type})':
+      f'非鼓起始 + 终止 + 程序召回 ({granularity_type})':
           nondrum_recall,
-      f'Nondrum onset + offset + program F1 ({granularity_type})':
+      f'非鼓起始 + 终止 + 程序 F1 ({granularity_type})':
           nondrum_f_measure
   }
 
-
+# 音符起始容忍度扫描
 def _note_onset_tolerance_sweep(
     ref_ns: note_seq.NoteSequence, est_ns: note_seq.NoteSequence,
     tolerances: Iterable[float] = (0.01, 0.02, 0.05, 0.1, 0.2, 0.5)
 ) -> Mapping[str, float]:
-  """Compute note precision/recall/F1 across a range of tolerances."""
+  """在容忍度范围内计算音符精度/召回/F1。"""
   est_intervals, est_pitches, unused_est_velocities = (
       note_seq.sequences_lib.sequence_to_valued_intervals(est_ns))
   ref_intervals, ref_pitches, unused_ref_velocities = (
@@ -165,12 +176,12 @@ def _note_onset_tolerance_sweep(
             est_intervals=est_intervals, est_pitches=est_pitches,
             onset_tolerance=tol, offset_min_tolerance=tol))
 
-    scores[f'Onset + offset precision ({tol})'] = precision
-    scores[f'Onset + offset recall ({tol})'] = recall
-    scores[f'Onset + offset F1 ({tol})'] = f_measure
+    scores[f'起始 + 终止精度 ({tol})'] = precision
+    scores[f'起始 + 终止召回 ({tol})'] = recall
+    scores[f'起始 + 终止 F1 ({tol})'] = f_measure
 
+  # 返回容忍度扫描的计算结果
   return scores
-
 
 def transcription_metrics(
     targets: Sequence[Mapping[str, Any]],
@@ -184,7 +195,9 @@ def transcription_metrics(
     frame_fps: float = 62.5,
     frame_velocity_threshold: int = 30,
 ) -> Mapping[str, seqio.metrics.MetricValue]:
-  """Compute mir_eval transcription metrics."""
+  """计算 mir_eval 转录度量。"""
+  
+  # 检查参数有效性
   if onsets_only and use_ties:
     raise ValueError('Ties not compatible with onset-only transcription.')
   if onsets_only:
@@ -194,15 +207,13 @@ def transcription_metrics(
   else:
     encoding_spec = note_sequences.NoteEncodingWithTiesSpec
 
-  # The first target for each full example contains the NoteSequence; just
-  # organize by ID.
+  # 对于每个完整的示例，第一个目标包含 NoteSequence；按 ID 组织。
   full_targets = {}
   for target in targets:
     if target['ref_ns']:
       full_targets[target['unique_id']] = {'ref_ns': target['ref_ns']}
 
-  # Gather all predictions for the same ID and concatenate them in time order,
-  # to construct full-length predictions.
+  # 收集相同 ID 的所有预测，并按时间顺序连接它们，以构建完整长度的预测。
   full_predictions = metrics_utils.combine_predictions_by_id(
       predictions=predictions,
       combine_predictions_fn=functools.partial(
@@ -233,8 +244,7 @@ def transcription_metrics(
     est_ns_drumless = remove_drums(prediction['est_ns'])
     ref_ns_drumless = remove_drums(target['ref_ns'])
 
-    # Whether or not there are separate tracks, compute metrics for the full
-    # NoteSequence minus drums.
+    # 无论是否有单独的音轨，都为全面的 NoteSequence 减去鼓计算度量。
     est_tracks = [est_ns_drumless]
     ref_tracks = [ref_ns_drumless]
     use_track_offsets = [not onsets_only]
@@ -242,7 +252,7 @@ def transcription_metrics(
     track_instrument_names = ['']
 
     if track_specs is not None:
-      # Compute transcription metrics separately for each track.
+      # 分别为每个音轨计算转录度量。
       for spec in track_specs:
         est_tracks.append(note_sequences.extract_track(
             prediction['est_ns'], spec.program, spec.is_drum))
@@ -263,7 +273,7 @@ def transcription_metrics(
       ref_intervals, ref_pitches, ref_velocities = (
           note_seq.sequences_lib.sequence_to_valued_intervals(ref_ns))
 
-      # Precision / recall / F1 using onsets (and pitches) only.
+      # 使用仅起始（和音高）计算精度/召回/F1。
       precision, recall, f_measure, avg_overlap_ratio = (
           mir_eval.transcription.precision_recall_f1_overlap(
               ref_intervals=ref_intervals,
@@ -277,7 +287,7 @@ def transcription_metrics(
       track_scores['Onset F1'] = f_measure
 
       if use_offsets:
-        # Precision / recall / F1 using onsets and offsets.
+        # 使用起始和终止计算精度/召回/F1。
         precision, recall, f_measure, avg_overlap_ratio = (
             mir_eval.transcription.precision_recall_f1_overlap(
                 ref_intervals=ref_intervals,
@@ -290,7 +300,7 @@ def transcription_metrics(
         track_scores['Onset + offset F1'] = f_measure
 
       if use_velocities:
-        # Precision / recall / F1 using onsets and velocities (no offsets).
+        # 使用起始和速度（无终止）计算精度/召回/F1。
         precision, recall, f_measure, avg_overlap_ratio = (
             mir_eval.transcription_velocity.precision_recall_f1_overlap(
                 ref_intervals=ref_intervals,
@@ -305,7 +315,7 @@ def transcription_metrics(
         track_scores['Onset + velocity F1'] = f_measure
 
       if use_offsets and use_velocities:
-        # Precision / recall / F1 using onsets, offsets, and velocities.
+        # 使用起始、终止和速度计算精度/召回/F1。
         precision, recall, f_measure, avg_overlap_ratio = (
             mir_eval.transcription_velocity.precision_recall_f1_overlap(
                 ref_intervals=ref_intervals,
@@ -318,7 +328,7 @@ def transcription_metrics(
         track_scores['Onset + offset + velocity recall'] = recall
         track_scores['Onset + offset + velocity F1'] = f_measure
 
-      # Calculate framewise metrics.
+      # 计算帧度量。
       is_drum = all([n.is_drum for n in ref_ns.notes])
       ref_pr = metrics_utils.get_prettymidi_pianoroll(
           ref_ns, frame_fps, is_drum=is_drum)
@@ -337,38 +347,36 @@ def transcription_metrics(
         else:
           scores[metric_name].append(metric_value)
 
-    # Add program-aware note metrics for all program granularities.
-    # Note that this interacts with the training program granularity; in
-    # particular granularities *higher* than the training granularity are likely
-    # to have poor metrics.
+    # 添加对所有程序粒度的程序感知的音符度量。
     for granularity_type in vocabularies.PROGRAM_GRANULARITIES:
       for name, score in _program_aware_note_scores(
           target['ref_ns'], prediction['est_ns'],
           granularity_type=granularity_type).items():
         scores[name].append(score)
 
-    # Add (non-program-aware) note metrics across a range of onset/offset
-    # tolerances.
+    # 添加（非程序感知的）在起始/终止容忍度范围内的音符度量。
     for name, score in _note_onset_tolerance_sweep(
         ref_ns=ref_ns_drumless, est_ns=est_ns_drumless).items():
       scores[name].append(score)
 
+  # 计算度量的平均值。
   mean_scores = {k: np.mean(v) for k, v in scores.items()}
 
+  # 创建度量的直方图。
   score_histograms = {'%s (hist)' % k: seqio.metrics.Histogram(np.array(v))
                       for k, v in scores.items()}
 
-  # Pick several examples to summarize.
+  # 选择几个示例进行汇总。
   targets_to_summarize, predictions_to_summarize = zip(
       *full_target_prediction_pairs[:num_summary_examples])
 
-  # Compute audio summaries.
+  # 计算音频摘要。
   audio_summaries = summaries.audio_summaries(
       targets=targets_to_summarize,
       predictions=predictions_to_summarize,
       spectrogram_config=spectrogram_config)
 
-  # Compute transcription summaries.
+  # 计算转录摘要。
   transcription_summaries = summaries.transcription_summaries(
       targets=targets_to_summarize,
       predictions=predictions_to_summarize,
@@ -376,13 +384,16 @@ def transcription_metrics(
       ns_feature_suffix='ns',
       track_specs=track_specs)
 
+  # 创建要汇总的钢琴卷轴字典。
   pianorolls_to_summarize = {
       k: v[:num_summary_examples] for k, v in all_track_pianorolls.items()
   }
 
+  # 计算 PrettyMIDI 钢琴卷轴的摘要。
   prettymidi_pianoroll_summaries = summaries.prettymidi_pianoroll(
       pianorolls_to_summarize, fps=frame_fps)
 
+  # 返回所有计算的度量和摘要。
   return {
       **mean_scores,
       **score_histograms,

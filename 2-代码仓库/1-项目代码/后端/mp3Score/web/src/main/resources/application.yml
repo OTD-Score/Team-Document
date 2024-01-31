@@ -1,0 +1,31 @@
+#服务端口
+server:
+  port: 8080
+
+#服务名称
+spring:
+  application:
+    name: web
+
+#  datasource:
+#    driver-class-name: com.mysql.jdbc.Driver
+#    url: jdbc:mysql://127.0.0.1:3306/bigdata?characterEncoding=utf-8&useSSL=false&serverTimezone=UTC
+#    username: root
+#    password: ???
+
+#  redis:
+#    host: 10.70.30.24
+#    port: 6379
+#    password: 'redis2020'
+#    database: 6
+#    channel: 1C1F1B01
+#    batteryChannel: 1C1F1405
+
+eureka:
+  client:
+    #表示是否将自己注册进eureka  默认为true
+    register-with-eureka: true
+    #是否从EurekaServer中抓取已有的注册信息，默认为true，单点无所谓，集群必须设置true才能和ribbon使用负载均衡
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:11011/eureka/

@@ -34,5 +34,8 @@ export default {
 <style scoped>
   #test{
     margin: 30px 0;
+    
   }
+
+  
 </style>

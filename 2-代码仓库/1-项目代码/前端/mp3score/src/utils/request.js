@@ -3,13 +3,12 @@ import axios from 'axios'
 
 
 //baseUrl 根据不同环境引入不同api 自动从打包配置中读取
-const baseUrl =  'https://yingji.irootech.com/' ;
+const baseUrl =  'http://114.55.130.141:8080' ;
+
 
 const BASE = {
-    login : 'eemd/login',
+    hello : '/hello?name=lisi',
 }
-
-
 
 
 const service = axios.create({
@@ -38,8 +37,8 @@ const utils = {
         return service.post(baseUrl + BASE[url],data)
     },
 
-    getReq(){
-
+    getReq(url,data){
+        return service.get(baseUrl + BASE[url],data)
     },
 
     fileUpLoad(){

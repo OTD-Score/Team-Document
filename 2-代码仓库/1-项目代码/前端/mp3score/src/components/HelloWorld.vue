@@ -17,7 +17,7 @@ export default {
         tel : 13574141111
       }
 
-      Utils.postReq('login',data).then((res)=>{
+      Utils.getReq('hello',data).then((res)=>{
         console.log('成功',res)
       }).catch(err =>{
         console.log('失败',err)

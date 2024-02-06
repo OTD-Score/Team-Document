@@ -1,6 +1,6 @@
 #服务端口
 server:
-  port: 11011
+  port: 8761
 
 #服务名称
 spring:
@@ -21,11 +21,18 @@ spring:
 #    channel: 1C1F1B01
 #    batteryChannel: 1C1F1405
 
+#eureka:
+##  instance:
+##    hostname: 127:0.0.1
+#  client:
+#    service-url:
+#      defaultZone: http://127.0.0.1:8088/eureka
+#    register-with-eureka: false
+#    fetch-registry: false
+
 eureka:
-  instance:
-    hostname: 127:0.0.1
   client:
-    service-url:
-      defaultZone: http://localhost:11011/eureka/
-    register-with-eureka: false
-    fetch-registry: false
+    register-with-eureka: false # 是否注册自己的信息到EurekaServer，默认是true
+    fetch-registry: false # 是否拉取其它服务的信息，默认是true
+    service-url: # EurekaServer的地址，现在是自己的地址，如果是集群，需要加上其它Server的地址。
+      defaultZone: http://127.0.0.1:8761/eureka

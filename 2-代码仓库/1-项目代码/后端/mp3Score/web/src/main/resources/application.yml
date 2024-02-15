@@ -11,9 +11,9 @@ spring:
     name: web #服务名称
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/bigdata?characterEncoding=utf-8&useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://114.55.130.141:3306/bigdata?characterEncoding=utf-8&useSSL=false&serverTimezone=UTC
     username: root
-    password: 521775
+    password: mp3Score
 
 #  redis:
 #    host: 10.70.30.24

@@ -1,44 +1,32 @@
-# Copyright 2023 The MT3 Authors.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# 版权声明
+# Apache License, Version 2.0 协议
+# 详见 http://www.apache.org/licenses/LICENSE-2.0
+# 该代码包含一些操作NoteSequence proto的辅助函数
 
-"""Helper functions that operate on NoteSequence protos."""
-
+# 导入必要的库和模块
 import dataclasses
 import itertools
-
 from typing import MutableMapping, MutableSet, Optional, Sequence, Tuple
-
 from mt3 import event_codec
 from mt3 import run_length_encoding
 from mt3 import vocabularies
-
 import note_seq
 
+# 默认音符参数
 DEFAULT_VELOCITY = 100
 DEFAULT_NOTE_DURATION = 0.01
 
-# Quantization can result in zero-length notes; enforce a minimum duration.
+# 由于量化可能导致零长度音符，设置最小持续时间
 MIN_NOTE_DURATION = 0.01
 
-
+# TrackSpec类，用于指定音轨信息
 @dataclasses.dataclass
 class TrackSpec:
   name: str
   program: int = 0
   is_drum: bool = False
 
-
+# 从NoteSequence中提取指定音轨信息
 def extract_track(ns, program, is_drum):
   track = note_seq.NoteSequence(ticks_per_quarter=220)
   track_notes = [note for note in ns.notes
@@ -48,9 +36,9 @@ def extract_track(ns, program, is_drum):
                       if track.notes else 0.0)
   return track
 
-
+# 修剪重叠的音符
 def trim_overlapping_notes(ns: note_seq.NoteSequence) -> note_seq.NoteSequence:
-  """Trim overlapping notes from a NoteSequence, dropping zero-length notes."""
+  """修剪NoteSequence中的重叠音符，并删除零长度音符。"""
   ns_trimmed = note_seq.NoteSequence()
   ns_trimmed.CopyFrom(ns)
   channels = set((note.pitch, note.program, note.is_drum)
@@ -68,9 +56,9 @@ def trim_overlapping_notes(ns: note_seq.NoteSequence) -> note_seq.NoteSequence:
   ns_trimmed.notes.extend(valid_notes)
   return ns_trimmed
 
-
+# 为音符分配乐器号
 def assign_instruments(ns: note_seq.NoteSequence) -> None:
-  """Assign instrument numbers to notes; modifies NoteSequence in place."""
+  """为音符分配乐器号；原地修改NoteSequence。"""
   program_instruments = {}
   for note in ns.notes:
     if note.program not in program_instruments and not note.is_drum:
@@ -83,17 +71,17 @@ def assign_instruments(ns: note_seq.NoteSequence) -> None:
     else:
       note.instrument = program_instruments[note.program]
 
-
+# 验证NoteSequence是否包含有效音符
 def validate_note_sequence(ns: note_seq.NoteSequence) -> None:
-  """Raise ValueError if NoteSequence contains invalid notes."""
+  """如果NoteSequence包含无效音符，则引发ValueError。"""
   for note in ns.notes:
     if note.start_time >= note.end_time:
-      raise ValueError('note has start time >= end time: %f >= %f' %
+      raise ValueError('音符的起始时间大于或等于结束时间：%f >= %f' %
                        (note.start_time, note.end_time))
     if note.velocity == 0:
-      raise ValueError('note has zero velocity')
+      raise ValueError('音符的速度为零')
 
-
+# 将音符数组转换为NoteSequence
 def note_arrays_to_note_sequence(
     onset_times: Sequence[float],
     pitches: Sequence[int],
@@ -102,7 +90,7 @@ def note_arrays_to_note_sequence(
     programs: Optional[Sequence[int]] = None,
     is_drums: Optional[Sequence[bool]] = None
 ) -> note_seq.NoteSequence:
-  """Convert note onset / offset / pitch / velocity arrays to NoteSequence."""
+  """将音符的起始/结束时间、音高和速度数组转换为NoteSequence。"""
   ns = note_seq.NoteSequence(ticks_per_quarter=220)
   for onset_time, offset_time, pitch, velocity, program, is_drum in itertools.zip_longest(
       onset_times, [] if offset_times is None else offset_times,
@@ -128,7 +116,7 @@ def note_arrays_to_note_sequence(
   assign_instruments(ns)
   return ns
 
-
+# NoteEventData类，用于表示音符事件的数据
 @dataclasses.dataclass
 class NoteEventData:
   pitch: int
@@ -137,34 +125,22 @@ class NoteEventData:
   is_drum: Optional[bool] = None
   instrument: Optional[int] = None
 
-
+# 将NoteSequence转换为音符的起始时间和音高
 def note_sequence_to_onsets(
     ns: note_seq.NoteSequence
 ) -> Tuple[Sequence[float], Sequence[NoteEventData]]:
-  """Extract note onsets and pitches from NoteSequence proto."""
-  # Sort by pitch to use as a tiebreaker for subsequent stable sort.
+  """从NoteSequence proto中提取音符的起始时间和音高。"""
+  # 根据音高排序，用作后续稳定排序的比较器
   notes = sorted(ns.notes, key=lambda note: note.pitch)
   return ([note.start_time for note in notes],
           [NoteEventData(pitch=note.pitch) for note in notes])
 
-
+# 将NoteSequence转换为音符的起始和结束时间以及音高
 def note_sequence_to_onsets_and_offsets(
     ns: note_seq.NoteSequence,
 ) -> Tuple[Sequence[float], Sequence[NoteEventData]]:
-  """Extract onset & offset times and pitches from a NoteSequence proto.
-
-  The onset & offset times will not necessarily be in sorted order.
-
-  Args:
-    ns: NoteSequence from which to extract onsets and offsets.
-
-  Returns:
-    times: A list of note onset and offset times.
-    values: A list of NoteEventData objects where velocity is zero for note
-        offsets.
-  """
-  # Sort by pitch and put offsets before onsets as a tiebreaker for subsequent
-  # stable sort.
+  """从NoteSequence proto中提取音符的起始和结束时间以及音高。"""
+  # 根据音高和音符类型排序，并将音符的结束时间放在前作为后续稳定排序的比较器
   notes = sorted(ns.notes, key=lambda note: note.pitch)
   times = ([note.end_time for note in notes] +
            [note.start_time for note in notes])
@@ -173,24 +149,12 @@ def note_sequence_to_onsets_and_offsets(
              for note in notes])
   return times, values
 
-
+# 将NoteSequence转换为音符的起始和结束时间以及音高和程序
 def note_sequence_to_onsets_and_offsets_and_programs(
     ns: note_seq.NoteSequence,
 ) -> Tuple[Sequence[float], Sequence[NoteEventData]]:
-  """Extract onset & offset times and pitches & programs from a NoteSequence.
-
-  The onset & offset times will not necessarily be in sorted order.
-
-  Args:
-    ns: NoteSequence from which to extract onsets and offsets.
-
-  Returns:
-    times: A list of note onset and offset times.
-    values: A list of NoteEventData objects where velocity is zero for note
-        offsets.
-  """
-  # Sort by program and pitch and put offsets before onsets as a tiebreaker for
-  # subsequent stable sort.
+  """从NoteSequence proto中提取音符的起始和结束时间以及音高和程序。"""
+  # 根据程序、音高和音符类型排序，并将非鼓音符的结束时间放在前作为后续稳定排序的比较器
   notes = sorted(ns.notes,
                  key=lambda note: (note.is_drum, note.program, note.pitch))
   times = ([note.end_time for note in notes if not note.is_drum] +
@@ -203,52 +167,52 @@ def note_sequence_to_onsets_and_offsets_and_programs(
              for note in notes])
   return times, values
 
-
+# NoteEncodingState类，用于音符编码状态，跟踪活动音高
 @dataclasses.dataclass
 class NoteEncodingState:
-  """Encoding state for note transcription, keeping track of active pitches."""
-  # velocity bin for active pitches and programs
+  """音符转录的编码状态，跟踪活动音高。"""
+  # 用于活动音高和程序的速度区间
   active_pitches: MutableMapping[Tuple[int, int], int] = dataclasses.field(
       default_factory=dict)
 
-
+# 将音符事件数据转换为一系列事件
 def note_event_data_to_events(
     state: Optional[NoteEncodingState],
     value: NoteEventData,
     codec: event_codec.Codec,
 ) -> Sequence[event_codec.Event]:
-  """Convert note event data to a sequence of events."""
+  """将音符事件数据转换为一系列事件。"""
   if value.velocity is None:
-    # onsets only, no program or velocity
+    # 仅处理音符的起始，没有程序和速度
     return [event_codec.Event('pitch', value.pitch)]
   else:
     num_velocity_bins = vocabularies.num_velocity_bins_from_codec(codec)
     velocity_bin = vocabularies.velocity_to_bin(
         value.velocity, num_velocity_bins)
     if value.program is None:
-      # onsets + offsets + velocities only, no programs
+      # 处理音符的起始、结束和速度，没有程序
       if state is not None:
         state.active_pitches[(value.pitch, 0)] = velocity_bin
       return [event_codec.Event('velocity', velocity_bin),
               event_codec.Event('pitch', value.pitch)]
     else:
       if value.is_drum:
-        # drum events use a separate vocabulary
+        # 鼓事件使用单独的词汇表
         return [event_codec.Event('velocity', velocity_bin),
                 event_codec.Event('drum', value.pitch)]
       else:
-        # program + velocity + pitch
+        # 处理程序、速度和音符的起始
         if state is not None:
           state.active_pitches[(value.pitch, value.program)] = velocity_bin
         return [event_codec.Event('program', value.program),
                 event_codec.Event('velocity', velocity_bin),
                 event_codec.Event('pitch', value.pitch)]
 
-
+# 将音符编码状态转换为一系列事件
 def note_encoding_state_to_events(
     state: NoteEncodingState
 ) -> Sequence[event_codec.Event]:
-  """Output program and pitch events for active notes plus a final tie event."""
+  """输出活动音符的程序和音符事件，以及最后的连接事件。"""
   events = []
   for pitch, program in sorted(
       state.active_pitches.keys(), key=lambda k: k[::-1]):
@@ -258,36 +222,36 @@ def note_encoding_state_to_events(
   events.append(event_codec.Event('tie', 0))
   return events
 
-
+# NoteDecodingState类，用于音符解码状态
 @dataclasses.dataclass
 class NoteDecodingState:
-  """Decoding state for note transcription."""
+  """音符转录的解码状态。"""
   current_time: float = 0.0
-  # velocity to apply to subsequent pitch events (zero for note-off)
+  # 用于后续音符起始事件的速度（用于音符结束事件为零）
   current_velocity: int = DEFAULT_VELOCITY
-  # program to apply to subsequent pitch events
+  # 后续音符起始事件的程序
   current_program: int = 0
-  # onset time and velocity for active pitches and programs
+  # 活动音符的起始时间和速度
   active_pitches: MutableMapping[Tuple[int, int],
                                  Tuple[float, int]] = dataclasses.field(
                                      default_factory=dict)
-  # pitches (with programs) to continue from previous segment
+  # 要从前一个段继续的音符（带有程序）
   tied_pitches: MutableSet[Tuple[int, int]] = dataclasses.field(
       default_factory=set)
-  # whether or not we are in the tie section at the beginning of a segment
+  # 是否在段开头的连接部分
   is_tie_section: bool = False
-  # partially-decoded NoteSequence
+  # 部分解码的NoteSequence
   note_sequence: note_seq.NoteSequence = dataclasses.field(
       default_factory=lambda: note_seq.NoteSequence(ticks_per_quarter=220))
 
-
+# 解码音符起始事件
 def decode_note_onset_event(
     state: NoteDecodingState,
     time: float,
     event: event_codec.Event,
     codec: event_codec.Codec,
 ) -> None:
-  """Process note onset event and update decoding state."""
+  """处理音符起始事件并更新解码状态。"""
   if event.type == 'pitch':
     state.note_sequence.notes.add(
         start_time=time, end_time=time + DEFAULT_NOTE_DURATION,
@@ -295,9 +259,7 @@ def decode_note_onset_event(
     state.note_sequence.total_time = max(state.note_sequence.total_time,
                                          time + DEFAULT_NOTE_DURATION)
   else:
-    raise ValueError('unexpected event type: %s' % event.type)
-
-
+    raise ValueError('意外的事件类型：%s' % event.type)
 def _add_note_to_sequence(
     ns: note_seq.NoteSequence,
     start_time: float, end_time: float, pitch: int, velocity: int,
@@ -309,16 +271,15 @@ def _add_note_to_sequence(
       pitch=pitch, velocity=velocity, program=program, is_drum=is_drum)
   ns.total_time = max(ns.total_time, end_time)
 
-
 def decode_note_event(
     state: NoteDecodingState,
     time: float,
     event: event_codec.Event,
     codec: event_codec.Codec
 ) -> None:
-  """Process note event and update decoding state."""
+  """处理音符事件并更新解码状态。"""
   if time < state.current_time:
-    raise ValueError('event time < current time, %f < %f' % (
+    raise ValueError('事件时间 < 当前时间, %f < %f' % (
         time, state.current_time))
   state.current_time = time
   if event.type == 'pitch':
@@ -326,16 +287,16 @@ def decode_note_event(
     if state.is_tie_section:
       # "tied" pitch
       if (pitch, state.current_program) not in state.active_pitches:
-        raise ValueError('inactive pitch/program in tie section: %d/%d' %
+        raise ValueError('连接部分中无效的音高/程序：%d/%d' %
                          (pitch, state.current_program))
       if (pitch, state.current_program) in state.tied_pitches:
-        raise ValueError('pitch/program is already tied: %d/%d' %
+        raise ValueError('音高/程序已经连接：%d/%d' %
                          (pitch, state.current_program))
       state.tied_pitches.add((pitch, state.current_program))
     elif state.current_velocity == 0:
-      # note offset
+      # 音符结束
       if (pitch, state.current_program) not in state.active_pitches:
-        raise ValueError('note-off for inactive pitch/program: %d/%d' %
+        raise ValueError('未激活的音高/程序的音符关闭：%d/%d' %
                          (pitch, state.current_program))
       onset_time, onset_velocity = state.active_pitches.pop(
           (pitch, state.current_program))
@@ -343,11 +304,9 @@ def decode_note_event(
           state.note_sequence, start_time=onset_time, end_time=time,
           pitch=pitch, velocity=onset_velocity, program=state.current_program)
     else:
-      # note onset
+      # 音符起始
       if (pitch, state.current_program) in state.active_pitches:
-        # The pitch is already active; this shouldn't really happen but we'll
-        # try to handle it gracefully by ending the previous note and starting a
-        # new one.
+        # 音高已经激活；这不应该真的发生，但我们会试着通过结束上一个音符并开始新的音符来优雅地处理它。
         onset_time, onset_velocity = state.active_pitches.pop(
             (pitch, state.current_program))
         _add_note_to_sequence(
@@ -356,25 +315,25 @@ def decode_note_event(
       state.active_pitches[(pitch, state.current_program)] = (
           time, state.current_velocity)
   elif event.type == 'drum':
-    # drum onset (drums have no offset)
+    # 鼓音符起始（鼓音符没有结束）
     if state.current_velocity == 0:
-      raise ValueError('velocity cannot be zero for drum event')
+      raise ValueError('鼓音符事件的速度不能为零')
     offset_time = time + DEFAULT_NOTE_DURATION
     _add_note_to_sequence(
         state.note_sequence, start_time=time, end_time=offset_time,
         pitch=event.value, velocity=state.current_velocity, is_drum=True)
   elif event.type == 'velocity':
-    # velocity change
+    # 速度变化
     num_velocity_bins = vocabularies.num_velocity_bins_from_codec(codec)
     velocity = vocabularies.bin_to_velocity(event.value, num_velocity_bins)
     state.current_velocity = velocity
   elif event.type == 'program':
-    # program change
+    # 程序变化
     state.current_program = event.value
   elif event.type == 'tie':
-    # end of tie section; end active notes that weren't declared tied
+    # 连接部分的结束；结束未声明为连接的活动音符
     if not state.is_tie_section:
-      raise ValueError('tie section end event when not in tie section')
+      raise ValueError('不在连接部分时结束连接部分事件')
     for (pitch, program) in list(state.active_pitches.keys()):
       if (pitch, program) not in state.tied_pitches:
         onset_time, onset_velocity = state.active_pitches.pop((pitch, program))
@@ -384,19 +343,17 @@ def decode_note_event(
             pitch=pitch, velocity=onset_velocity, program=program)
     state.is_tie_section = False
   else:
-    raise ValueError('unexpected event type: %s' % event.type)
-
+    raise ValueError('意外的事件类型：%s' % event.type)
 
 def begin_tied_pitches_section(state: NoteDecodingState) -> None:
-  """Begin the tied pitches section at the start of a segment."""
+  """在段开头开始连接部分。"""
   state.tied_pitches = set()
   state.is_tie_section = True
-
 
 def flush_note_decoding_state(
     state: NoteDecodingState
 ) -> note_seq.NoteSequence:
-  """End all active notes and return resulting NoteSequence."""
+  """结束所有活动音符并返回生成的NoteSequence。"""
   for onset_time, _ in state.active_pitches.values():
     state.current_time = max(state.current_time, onset_time + MIN_NOTE_DURATION)
   for (pitch, program) in list(state.active_pitches.keys()):
@@ -407,12 +364,10 @@ def flush_note_decoding_state(
   assign_instruments(state.note_sequence)
   return state.note_sequence
 
-
 class NoteEncodingSpecType(run_length_encoding.EventEncodingSpec):
   pass
 
-
-# encoding spec for modeling note onsets only
+# 仅对音符起始建模的编码规范
 NoteOnsetEncodingSpec = NoteEncodingSpecType(
     init_encoding_state_fn=lambda: None,
     encode_event_fn=note_event_data_to_events,
@@ -422,8 +377,7 @@ NoteOnsetEncodingSpec = NoteEncodingSpecType(
     decode_event_fn=decode_note_onset_event,
     flush_decoding_state_fn=lambda state: state.note_sequence)
 
-
-# encoding spec for modeling onsets and offsets
+# 对音符起始和结束建模的编码规范
 NoteEncodingSpec = NoteEncodingSpecType(
     init_encoding_state_fn=lambda: None,
     encode_event_fn=note_event_data_to_events,
@@ -433,9 +387,7 @@ NoteEncodingSpec = NoteEncodingSpecType(
     decode_event_fn=decode_note_event,
     flush_decoding_state_fn=flush_note_decoding_state)
 
-
-# encoding spec for modeling onsets and offsets, with a "tie" section at the
-# beginning of each segment listing already-active notes
+# 对音符起始和结束建模的编码规范，段开头有一个“连接”部分，其中列出了已激活的音符
 NoteEncodingWithTiesSpec = NoteEncodingSpecType(
     init_encoding_state_fn=NoteEncodingState,
     encode_event_fn=note_event_data_to_events,

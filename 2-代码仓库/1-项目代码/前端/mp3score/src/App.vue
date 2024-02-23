@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
   <img alt="Vue logo" src="./assets/logo.png">
   <HelloWorld></HelloWorld>
   
@@ -25,4 +25,20 @@ export default {
   color: #2c3e50;
   margin-top: 60px;
 }
-</style>
+</style> -->
+<template>
+  <div id="app">
+    <router-view />
+  </div>
+    
+  </template>
+  
+  
+  <style>
+  #app{
+    width:100%;
+    height:100%;
+    font-size:14px;
+    background:white
+  }
+  </style>

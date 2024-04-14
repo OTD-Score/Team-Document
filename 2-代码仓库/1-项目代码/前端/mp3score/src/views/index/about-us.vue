@@ -84,7 +84,7 @@
   /* width: 1440px; 
   height: 3528px;  */
   left:0;
-  width: 2730.528px; 
+  width: 1440px; 
   height: 6689.7936px; 
   /* left:0;
   width: 1584px; 

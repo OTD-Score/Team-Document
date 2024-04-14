@@ -9,12 +9,12 @@
   },
   "dependencies": {
     "axios": "^1.6.7",
-    "lib-flexible-computer": "^1.0.2",
-    "postcss": "^8.4.35",
-    "postcss-px2rem": "^0.3.0",
     "body-parser": "^1.20.2",
     "core-js": "^3.8.3",
     "element-plus": "^2.5.5",
+    "lib-flexible-computer": "^1.0.2",
+    "postcss": "^8.4.35",
+    "postcss-px2rem": "^0.3.0",
     "vue": "^3.2.13",
     "vue-router": "^4.2.5"
   },

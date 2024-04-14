@@ -9,7 +9,7 @@
                 <img v-else src="@/assets/exel.png" class="item-img">
 
                 <div class="item-title">{{ index + '.' + item.name }} </div>
-                <div class="item-size">{item.size}</div>
+                <div class="item-size">{{item.size}}</div>
             </div>
         </div>
     </div>
@@ -40,12 +40,12 @@
         },
         mounted(){
             let _this = this;
-            setTimeout(function() {
-                let type = _this.$route.query.type; // 
-                let id = _this.$route.query.id; // 
-                console.log(type,id);
-                _this.list = getFileList(type,id)
-            }, 100);
+            // setTimeout(function() {
+            //     let type = _this.$route.query.type; // 
+            //     let id = _this.$route.query.id; // 
+            //     console.log(type,id);
+            //     _this.list = getFileList(type,id)
+            // }, 100);
         },
         methods:{
             clickEv(name,url){

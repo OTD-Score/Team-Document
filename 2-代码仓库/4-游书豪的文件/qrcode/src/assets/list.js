@@ -1,7 +1,7 @@
 /* eslint-disable */
 
 function getFileList(type = '21M',id){
-    //type = '21M' "51M" "65M" "CYC" "ZJC" "LYC" "SYC" "ZZXC"
+    //type = '21M' "51M" "65M" "CYC" "ZJC" "LYC" "SYC" "ZZXC" "PM180" "BP450" "DF20"
     if(type==='21M'){
         return M21
     }
@@ -26,15 +26,36 @@ function getFileList(type = '21M',id){
     if(type==='ZZXC'){
         return ZZXC
     }
+    if(type==='PM180'){
+        return PM180
+    }
+    if(type==='BP450'){
+        return BP450
+    }
+    if(type==='DF20'){
+        return DF20
+    }
 }
 
 let base_url = 'https://yingji.irootech.com/upload';
 
 let M21 = [
     {
+        name:'JP21润滑图.pdf',
+        type:'pdf',
+        size: '201KB',
+        url: base_url + '/1-三桶油21米/'
+    },
+    {
         name:'4桥21米消防车液压系统原理图（外发版）.pdf',
         type:'pdf',
         size: '197KB',
+        url: base_url + '/1-三桶油21米/'
+    },
+    {
+        name:'JP21维保记录表.pdf',
+        type:'pdf',
+        size: '304KB',
         url: base_url + '/1-三桶油21米/'
     },
     {
@@ -50,9 +71,15 @@ let M21 = [
         url: base_url + '/1-三桶油21米/'
     },
     {
-        name:'JP21水路原理图(借用JP26).pdf',
+        name:'JP21水路原理图.pdf',
         type:'pdf',
         size: '179KB',
+        url: base_url + '/1-三桶油21米/'
+    },
+    {
+        name:'SYM5435JXFJP21举高喷射消防车操作保养手册1.pdf',
+        type:'pdf',
+        size: '50.6M',
         url: base_url + '/1-三桶油21米/'
     },
     {
@@ -61,13 +88,20 @@ let M21 = [
         size: '903KB',
         url: base_url + '/1-三桶油21米/'
     }
+    
 ]
 
 let M51 = [
     {
-        name:'JP51电气原理图.pdf',
+        name:'JP51润滑图.pdf',
         type:'pdf',
-        size: '2.6M',
+        size: '145KB',
+        url: base_url + '/2-三桶油51米/'
+    },
+    {
+        name:'JP51维保记录表.pdf',
+        type:'pdf',
+        size: '328KB',
         url: base_url + '/2-三桶油51米/'
     },
     {
@@ -89,6 +123,12 @@ let M51 = [
         url: base_url + '/2-三桶油51米/'
     },
     {
+        name:'JP51操作保养手册.pdf',
+        type:'pdf',
+        size: '59.7M',
+        url: base_url + '/2-三桶油51米/'
+    },
+    {
         name:'三一重工51米举高喷射消防车技术规格书-202404（JP51+沃尔沃FM540+万升泵+5t载液).docx',
         type:'word',
         size: '544KB',
@@ -97,6 +137,18 @@ let M51 = [
 ]
 
 let M65 = [
+    {
+        name:'65米润滑图.pdf',
+        type:'pdf',
+        size: '146KB',
+        url: base_url + '/3-三桶油65米/'
+    },
+    {
+        name:'65米维保记录表1.pdf',
+        type:'pdf',
+        size: '340KB',
+        url: base_url + '/3-三桶油65米/'
+    },
     {
         name:'65米液压原理图-Model.pdf',
         type:'pdf',
@@ -119,6 +171,12 @@ let M65 = [
         name:'升级款65米举高喷射消防车车型基本信息.doc',
         type:'word',
         size: '1.3M',
+        url: base_url + '/3-三桶油65米/'
+    },
+    {
+        name:'SYM5520JXFJP65举高喷射消防车操作保养手册.pdf',
+        type:'pdf',
+        size: '68.2M',
         url: base_url + '/3-三桶油65米/'
     },
     {
@@ -148,39 +206,63 @@ let CYC = [
         size: '203KB',
         url: base_url + '/4-三桶油餐饮车/'
     },
+    {
+        name:'保障餐车维保记录表.pdf',
+        type:'pdf',
+        size: '363KB',
+        url: base_url + '/4-三桶油餐饮车/'
+    },
 ]
 
 let ZJC = [
     {
-        name:'多功能化学侦检消防车—电气原理图.pdf',
+        name:'多功能危险化学品监测车操保手册.pdf',
+        type:'pdf',
+        size: '3.4M',   
+        url: base_url + '/5-三桶油侦检车/'
+    },
+    {
+        name:'多功能危险化学品监测车—电气原理图.pdf',
         type:'pdf',
         size: '616KB',
         url: base_url + '/5-三桶油侦检车/'
     },
     {
-        name:'多功能化学侦检消防车技术规格书.docx',
-        type:'word',
-        size: '946KB',
+        name:'多功能危险化学品监测车技术规格书.pdf',
+        type:'pdf',
+        size: '1.4M',
         url: base_url + '/5-三桶油侦检车/'
     },
     {
-        name:'多功能化学侦检消防车—气路原理图.pdf',
+        name:'多功能危险化学品监测车—气路原理图.pdf',
         type:'pdf',
         size: '81KB',
         url: base_url + '/5-三桶油侦检车/'
     },
     {
-        name:'多功能化学侦检消防车—水路原理图.pdf',
+        name:'多功能危险化学品监测车—润滑图.pdf',
+        type:'pdf',
+        size: '214KB',
+        url: base_url + '/5-三桶油侦检车/'
+    },
+    {
+        name:'多功能危险化学品监测车—水路原理图.pdf',
         type:'pdf',
         size: '75KB',
         url: base_url + '/5-三桶油侦检车/'
     },
     {
-        name:'多功能化学侦检消防车—应急呼吸系统原理图.pdf',
+        name:'多功能危险化学品监测车维保记录表.pdf',
+        type:'pdf',
+        size: '238KB',
+        url: base_url + '/5-三桶油侦检车/'
+    },
+    {
+        name:'多功能危险化学品监测车—应急呼吸系统原理图.pdf',
         type:'pdf',
         size: '51KB',
         url: base_url + '/5-三桶油侦检车/'
-    },
+    }
 ]
 
 let LYC = [
@@ -195,10 +277,17 @@ let LYC = [
         type:'word',
         size: '2.6M',
         url: base_url + '/6-三桶油淋浴车/'
-    },{
+    },
+    {
         name:'淋浴车原理图.doc',
         type:'word',
         size: '288KB',
+        url: base_url + '/6-三桶油淋浴车/'
+    },
+    {
+        name:'淋浴车维保记录表.pdf',
+        type:'pdf',
+        size: '376KB',
         url: base_url + '/6-三桶油淋浴车/'
     },
 ]
@@ -220,6 +309,12 @@ let SYC = [
         name:'宿营车原理图.doc',
         type:'word',
         size: '264KB',
+        url: base_url + '/7-三桶油宿营车/'
+    },
+    {
+        name:'宿营车维保记录表.pdf',
+        type:'pdf',
+        size: '388KB',
         url: base_url + '/7-三桶油宿营车/'
     },
 ]
@@ -249,7 +344,140 @@ let ZZXC = [
         size: '175KB',
         url: base_url + '/8-三桶油自装卸车/'
     },
+    {
+        name:'自装卸车维保记录表.pdf',
+        type:'pdf',
+        size: '400KB',
+        url: base_url + '/8-三桶油自装卸车/'
+    },
 ]
 
+let PM180 = [
+    {
+        name:'PM180泡沫消防车车型基本信息.pdf',
+        type:'pdf',
+        size: '368KB',
+        url: base_url + '/9-三桶油PM180/'
+    },
+    {
+        name:'PM180维保记录表.pdf',
+        type:'pdf',
+        size: '412KB',
+        url: base_url + '/9-三桶油PM180/'
+    },
+    {
+        name:'PM180泡沫消防车电气原理图V0_20230413.pdf',
+        type:'pdf',
+        size: '147KB',
+        url: base_url + '/9-三桶油PM180/'
+    },
+    {
+        name:'PM180泡沫消防车气路原理图V0.pdf',
+        type:'pdf',
+        size: '107KB',
+        url: base_url + '/9-三桶油PM180/'
+    },
+    {
+        name:'PM180水路原理图V0.pdf',
+        type:'pdf',
+        size: '209KB',
+        url: base_url + '/9-三桶油PM180/'
+    },
+    {
+        name:'PM180操保手册PS00037664V0.pdf',
+        type:'pdf',
+        size: '66.9M',
+        url: base_url + '/9-三桶油PM180/'
+    },
+]
+
+let BP450 = [
+    {
+        name:'BP450泵浦车技术规格书V1.docx',
+        type:'word',
+        size: '1.53M',
+        url: base_url + '/10-三桶油泵浦消防车/'
+    },
+    {
+        name:'泵浦消防车电气原理图.pdf',
+        type:'pdf',
+        size: '293KB',
+        url: base_url + '/10-三桶油泵浦消防车/'
+    },
+    {
+        name:'泵浦消防车水路原理图.pdf',
+        type:'pdf',
+        size: '23KB',
+        url: base_url + '/10-三桶油泵浦消防车/'
+    },
+    {
+        name:'泵浦消防车液压原理图.pdf',
+        type:'pdf',
+        size: '80KB',
+        url: base_url + '/10-三桶油泵浦消防车/'
+    },
+    {
+        name:'泵浦消防车操保手册.pdf',
+        type:'pdf',
+        size: '5.0M',
+        url: base_url + '/10-三桶油泵浦消防车/'
+    },
+    {
+        name:'泵浦消防车润滑图.pdf',
+        type:'pdf',
+        size: '85KB',
+        url: base_url + '/10-三桶油泵浦消防车/'
+    },
+    {
+        name:'泵浦消防车维保记录表.pdf',
+        type:'pdf',
+        size: '232KB',
+        url: base_url + '/10-三桶油泵浦消防车/'
+    },
+]
+let DF20 = [
+    {
+        name:'DF20水带敷设车技术规格V1.docx',
+        type:'word',
+        size: '443KB',
+        url: base_url + '/11-三桶油水带敷设车/'
+    },
+    {
+        name:'DF20水带车水路气路原理图.pdf',
+        type:'pdf',
+        size: '40KB',
+        url: base_url + '/11-三桶油水带敷设车/'
+    },
+    {
+        name:'DF20水带车液压原理图.pdf',
+        type:'pdf',
+        size: '118KB',
+        url: base_url + '/11-三桶油水带敷设车/'
+    },
+    {
+        name:'水带敷设车电气原理图.pdf',
+        type:'pdf',
+        size: '901KB',
+        url: base_url + '/11-三桶油水带敷设车/'
+    },
+    {
+        name:'水带敷设消防车操作保养手册.pdf',
+        type:'pdf',
+        size: '18.8M',
+        url: base_url + '/11-三桶油水带敷设车/'
+    },
+    {
+        name:'DF20水带敷设车润滑图.pdf',
+        type:'pdf',
+        size: '176KB',
+        url: base_url + '/11-三桶油水带敷设车/'
+    },
+    {
+        name:'DF20水带敷设车维保记录表.pdf',
+        type:'pdf',
+        size: '218KB',
+        url: base_url + '/11-三桶油水带敷设车/'
+    },
+]
 export default getFileList
 

@@ -1,6 +1,6 @@
 <template>
     <div class="index">
-        <div class="title">随车文件清单</div>
+        <div class="title">车辆信息详情</div>
 
         <div class="list-container">
             <div class="list-item" v-for="(item,index) in list" :key="item.id" @click='clickEv(item.name,item.url)'>
@@ -85,12 +85,12 @@
     font-size: 15px;
     font-weight: bold;
     width: 220px;
+    white-space: nowrap;
+    overflow-x: scroll;
     position: relative;
-    left: 15px;
-    overflow: hidden; /* 确保超出容器的文本被隐藏 */
-    white-space: nowrap; /* 防止文本换行 */
-    text-overflow: ellipsis; /* 超出部分显示省略号 */
+    left: 25px;
     text-align: left;
+    display: flex;
 }
 .item-size{
     font-size: 15px;

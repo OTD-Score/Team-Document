@@ -1,44 +1,34 @@
-<!-- <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld></HelloWorld>
-  
-  <router-view />
+<template>
+  <div id="app">
+    <top-nav></top-nav>
+    <router-view />
+
+  </div>
+    
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import topNav from '@/components/top-nav/top-nav.vue'
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    'top-nav' : topNav,
   }
 }
 </script>
-
+  
+  
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style> -->
-<template>
-  <div id="app">
-    <router-view />
-  </div>
-    
-  </template>
-  
-  
-  <style>
+  body{
+    margin: 0;
+  }
   #app{
     width:100%;
     height:100%;
-    font-size:14px;
-    background:white
+    font-size:16px;
+    background:white;
+    box-sizing: content-box;
+
   }
   </style>

@@ -1,4 +1,4 @@
-import IndexPage from '@/views/index/IndexPage';
+import IndexPage from '@/views/index/index.vue';
 // import IndexPage from '@/views/index';
 import RecordPage from '@/views/record';
 // import LoginPage from '@/views/login/login.vue'

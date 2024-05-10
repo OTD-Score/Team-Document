@@ -1,15 +1,15 @@
 import IndexPage from '@/views/index/index.vue';
-// import IndexPage from '@/views/index';
-import RecordPage from '@/views/record';
-// import LoginPage from '@/views/login/login.vue'
+import RecordPage from '@/views/record/record';
 import LoginPage from '@/views/login/login'
+import AboutPage from '@/views/about/about'
 
 import { createRouter,createWebHashHistory } from 'vue-router'
 
 const routes = [
     { path: '/login', component: LoginPage },
     { path: '/', component : IndexPage},
-    { path: '/record',component : RecordPage}
+    { path: '/record',component : RecordPage},
+    { path : '/about',component : AboutPage}
 
 ]
 

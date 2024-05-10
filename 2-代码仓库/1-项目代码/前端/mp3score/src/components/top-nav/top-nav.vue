@@ -3,7 +3,7 @@
 
         <div class="name-wrapper">
             <div class="logo-img"></div>
-            <div class="name">麦片谱</div>
+            <div class="name">MP3Score</div>
         </div>
         
         <div class="nav-wrapper">
@@ -33,7 +33,7 @@
         justify-content: space-between;
         position: fixed;
         top: 0;
-        z-index: 99;
+        z-index: 999;
     }
     .name-wrapper{
         display: flex;
@@ -57,6 +57,7 @@
     .nav-page{
         font-weight: 400;
         margin-right: 36px;
+        color:rgba(101, 94, 78, 1)
     }
     .login-icon{    
         width: 74px;

@@ -1,5 +1,5 @@
 <template>
-    <div class='wrapper'>
+    <div class='inner-wrapper'>
         <div class="logo"></div>
         <div class="login-type-area">验证码登录</div>
 
@@ -31,9 +31,9 @@ export default{
 </script>
 
 <style scoped>
-    .wrapper{
-        width: 519.28px;
-        height: 400.55px;
+    .inner-wrapper{
+        width: 520px;
+        height: 400px;
         border-radius: 24px;
         background: rgba(255, 255, 255, 0.24);
         box-shadow:inset 0px 2px 4px 2px rgba(255, 255, 255, 0.15), 0px 4px 8px  rgba(0, 0, 0, 0.25);
@@ -41,6 +41,7 @@ export default{
         display: flex;
         flex-direction: column;
         align-items: center;
+        box-sizing: border-box;
     }
     .logo{
         margin-top: 36px;

@@ -42,7 +42,6 @@ export default{
     .content-wrapper{
         width: 1920px;
         height: 904px;
-
         height: 84%;
         background: linear-gradient(180deg, rgba(168, 226, 255, 1) 0%, rgba(255, 255, 255, 1) 49.02%, rgba(255, 251, 240, 1) 100%);
         /* background-image: url('@/assets/login-page/bg.png');

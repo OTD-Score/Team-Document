@@ -6,6 +6,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>音频转MIDI</title>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        h1 {
+            color: #333;
+        }
+        #status {
+            margin: 20px 0;
+            text-align: center;
+        }
+        form {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        input[type="file"] {
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        progress {
+            width: 100%;
+            margin-top: 10px;
+        }
+        #convering {
+            color: #ff6f61;
+            font-weight: bold;
+            display: none;
+        }
+        #downloadButton1, #downloadButton2 {
+            display: none;
+            margin-top: 20px;
+            background-color: #007BFF;
+        }
+        #downloadButton1:hover, #downloadButton2:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 
 <body>
@@ -15,7 +78,6 @@
     <!-- 显示上传和转换状态 -->
     <div id="status">
         <!-- 上传音频文件的表单 -->
-        <a href="/ismir2021_note">获取纯音乐NoteSequence</a>
         <form id="uploadForm" enctype="multipart/form-data">
             <label for="audioFile">选择音频文件：</label>
             <input type="file" id="audioFile" name="file" accept=".wav, .mp3">
@@ -25,42 +87,30 @@
     </div>
     <!-- 显示上传进度 -->
     <progress id="uploadProgress" value="0" max="100">上传ing</progress>
-    <p id="convering" style="display:none">转化ing</p>
+    <p id="convering">转化ing</p>
     <!-- 下载生成的MIDI文件按钮 -->
-    <button id="downloadButton1" onclick="download_mt3()" style="display:none">下载MIDI文件</button>
-    <button id="downloadButton2" onclick="download_ismir2021()" style="display:none">下载MIDI文件</button>
-    
+    <button id="downloadButton1">下载MIDI文件</button>
+    <button id="downloadButton2">下载MIDI文件</button>
+
     <script>
-        // 全局变量存储服务器 IP 地址
-        var serverIp = 'https://instantly-stirred-gnat.ngrok-free.app'; // 替换为你的服务器 IP 和端口
+        let mt3FilePath = '';
+        let ismir2021FilePath = '';
 
         function updateCurrentTime() {
             var currentTimeElement = document.getElementById('currentTime');
-
-            // 创建一个 Date 对象来获取当前时间
             var currentTime = new Date();
-
-            // 格式化时间字符串
             var formattedTime = currentTime.toLocaleTimeString();
-
-            // 更新页面上显示的时间
             currentTimeElement.textContent = formattedTime;
         }
 
-        // 初始加载时获取当前时间
         updateCurrentTime();
-        // 每隔一秒更新一次时间
         setInterval(updateCurrentTime, 1000);
 
-        // 上传音频文件的函数
         function uploadAudio(model_url) {
             var form = document.getElementById('uploadForm');
             var formData = new FormData(form);
-
-            // 创建 XMLHttpRequest 对象
             var xhr = new XMLHttpRequest();
 
-            // 监听上传进度事件
             xhr.upload.addEventListener('progress', function (event) {
                 if (event.lengthComputable) {
                     var percentComplete = (event.loaded / event.total) * 100;
@@ -71,27 +121,29 @@
                 }
             });
 
-            // 发送POST请求到服务器
-            xhr.open('POST', serverIp + model_url, true);
+            xhr.open('POST', `https://instantly-stirred-gnat.ngrok-free.app${model_url}`, true);
             xhr.send(formData);
 
-            // 处理服务器响应
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === XMLHttpRequest.DONE) {
                     if (xhr.status === 200) {
                         var data = JSON.parse(xhr.responseText);
-
-                        // 显示上传和转换状态
                         document.getElementById('status').innerHTML = data.message;
-
-                        // 如果转换成功，显示下载按钮
                         if (data.success) {
-                            if (model_url == '/mt3') {
-                                document.getElementById('downloadButton1').style.display = 'block';
-                            } else {
-                                document.getElementById('downloadButton2').style.display = 'block';
-                            }
                             document.getElementById('convering').style.display = 'none';
+                            if (model_url == '/mt3') {
+                                mt3FilePath = data.midi_file_path;
+                                document.getElementById('downloadButton1').style.display = 'block';
+                                document.getElementById('downloadButton1').onclick = function () {
+                                    downloadFile(mt3FilePath);
+                                };
+                            } else {
+                                ismir2021FilePath = data.midi_file_path;
+                                document.getElementById('downloadButton2').style.display = 'block';
+                                document.getElementById('downloadButton2').onclick = function () {
+                                    downloadFile(ismir2021FilePath);
+                                };
+                            }
                         }
                     } else {
                         console.error('Error:', xhr.status);
@@ -100,47 +152,14 @@
             };
         }
 
-        // 下载MIDI文件的函数
-        function download_mt3() {
-            // 创建一个虚拟的a标签，模拟点击下载
+        function downloadFile(filePath) {
             var link = document.createElement('a');
-            link.href = serverIp + '/mt3/download'; // 这里填写下载的路由
-            link.download = 'output.mid'; // 这里填写默认的下载文件名
+            link.href = `https://instantly-stirred-gnat.ngrok-free.app/download?file_path=${encodeURIComponent(filePath)}`;
+            link.download = 'output.mid';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
-
-        // 下载MIDI文件的函数
-        function download_ismir2021() {
-            // 创建一个虚拟的a标签，模拟点击下载
-            var link = document.createElement('a');
-            link.href = serverIp + '/ismir2021/download'; // 这里填写下载的路由
-            link.download = 'output.mid'; // 这里填写默认的下载文件名
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        // 检查用户不活跃状态并发送请求
-        setInterval(function () {
-            var currentTime = new Date().getTime();
-            var inactiveTime = currentTime - lastActivityTime;
-
-            // 如果用户不活跃超过一定时间，发送请求
-            if (inactiveTime > 60000) { // 60秒不活跃
-                $.ajax({
-                    url: serverIp + '/inactive',
-                    type: 'GET',
-                    success: function (response) {
-                        console.log(response);
-                    },
-                    error: function (error) {
-                        console.error(error);
-                    }
-                });
-            }
-        }, 10000); // 10秒检查一次，你可以根据需要调整间隔时间
     </script>
 </body>
 

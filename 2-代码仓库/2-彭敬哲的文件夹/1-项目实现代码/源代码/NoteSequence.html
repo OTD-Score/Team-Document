@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>POST Request Demo</title>
+</head>
+
+<body>
+    <h1>POST Request Demo</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <label for="audioFile">选择音频文件：</label>
+        <input type="file" id="audioFile" name="file" accept=".wav, .mp3">
+    </form>
+    <!-- <button type="button" onclick="uploadAudio('/ismir2021_note')">获取纯音乐NoteSequence</button> -->
+    <button type="button" onclick="uploadAudio('/ismir2021_note')">获取纯音乐NoteSequence</button>
+    <!-- <button id="downloadButton1" onclick="download_mt3()" style="display:none">下载MIDI文件</button> -->
+    <button id="downloadButton1" onclick="download()" style="color:red">下载文件</button>
+
+    <script>
+        // 上传音频文件的函数
+        function uploadAudio(model_url) {
+
+            var form = document.getElementById('uploadForm');
+            var formData = new FormData(form);
+
+            // 创建 XMLHttpRequest 对象
+            var xhr = new XMLHttpRequest();
+
+            // 监听上传进度事件
+            xhr.upload.addEventListener('progress', function (event) {
+                if (event.lengthComputable) {
+                    var percentComplete = (event.loaded / event.total) * 100;
+                    document.getElementById('uploadProgress').value = percentComplete;
+                    if (percentComplete == 100) {
+                        document.getElementById('convering').style.display = 'block';
+                    }
+                }
+            });
+
+            // 发送POST请求到服务器
+            xhr.open('POST', model_url, true);
+            xhr.send(formData);
+
+            // 处理服务器响应
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        var data = JSON.parse(xhr.responseText);
+
+                        // 显示上传和转换状态
+                        document.getElementById('status').innerHTML = data.message;
+
+                        // 如果转换成功，显示下载按钮
+                        if (data.success) {
+                            document.getElementById('downloadButton1').style.color = 'green';
+                        }
+                    } else {
+                        console.error('Error:', xhr.status);
+                    }
+                }
+            };
+        }
+        // 下载MIDI文件的函数
+        function download() {
+            // 创建一个虚拟的a标签，模拟点击下载
+            var link = document.createElement('a');
+            link.href = '/ismir2021_note/download'; // 这里填写下载的路由
+            link.download = 'output.txt'; // 这里填写默认的下载文件名
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+    </script>
+</body>
+
+</html>

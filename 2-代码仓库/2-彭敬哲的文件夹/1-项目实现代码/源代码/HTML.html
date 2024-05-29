@@ -15,6 +15,7 @@
     <!-- 显示上传和转换状态 -->
     <div id="status">
         <!-- 上传音频文件的表单 -->
+        <a href="/ismir2021_note">获取纯音乐NoteSequence</a>
         <form id="uploadForm" enctype="multipart/form-data">
             <label for="audioFile">选择音频文件：</label>
             <input type="file" id="audioFile" name="file" accept=".wav, .mp3">
@@ -28,10 +29,11 @@
     <!-- 下载生成的MIDI文件按钮 -->
     <button id="downloadButton1" onclick="download_mt3()" style="display:none">下载MIDI文件</button>
     <button id="downloadButton2" onclick="download_ismir2021()" style="display:none">下载MIDI文件</button>
-    <!-- 下载session按钮-->
-    <!-- <button id="downloadButton" onclick="Session()">查询session函数</button>  -->
-
+    
     <script>
+        // 全局变量存储服务器 IP 地址
+        var serverIp = 'https://instantly-stirred-gnat.ngrok-free.app'; // 替换为你的服务器 IP 和端口
+
         function updateCurrentTime() {
             var currentTimeElement = document.getElementById('currentTime');
 
@@ -52,7 +54,6 @@
 
         // 上传音频文件的函数
         function uploadAudio(model_url) {
-
             var form = document.getElementById('uploadForm');
             var formData = new FormData(form);
 
@@ -71,7 +72,7 @@
             });
 
             // 发送POST请求到服务器
-            xhr.open('POST', model_url , true);
+            xhr.open('POST', serverIp + model_url, true);
             xhr.send(formData);
 
             // 处理服务器响应
@@ -85,9 +86,9 @@
 
                         // 如果转换成功，显示下载按钮
                         if (data.success) {
-                            if(model_url == '/mt3'){
+                            if (model_url == '/mt3') {
                                 document.getElementById('downloadButton1').style.display = 'block';
-                            }else{
+                            } else {
                                 document.getElementById('downloadButton2').style.display = 'block';
                             }
                             document.getElementById('convering').style.display = 'none';
@@ -103,7 +104,7 @@
         function download_mt3() {
             // 创建一个虚拟的a标签，模拟点击下载
             var link = document.createElement('a');
-            link.href = '/mt3/download'; // 这里填写下载的路由
+            link.href = serverIp + '/mt3/download'; // 这里填写下载的路由
             link.download = 'output.mid'; // 这里填写默认的下载文件名
             document.body.appendChild(link);
             link.click();
@@ -114,13 +115,12 @@
         function download_ismir2021() {
             // 创建一个虚拟的a标签，模拟点击下载
             var link = document.createElement('a');
-            link.href = '/ismir2021/download'; // 这里填写下载的路由
+            link.href = serverIp + '/ismir2021/download'; // 这里填写下载的路由
             link.download = 'output.mid'; // 这里填写默认的下载文件名
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
-
 
         // 检查用户不活跃状态并发送请求
         setInterval(function () {
@@ -130,7 +130,7 @@
             // 如果用户不活跃超过一定时间，发送请求
             if (inactiveTime > 60000) { // 60秒不活跃
                 $.ajax({
-                    url: '/inactive',
+                    url: serverIp + '/inactive',
                     type: 'GET',
                     success: function (response) {
                         console.log(response);
@@ -141,7 +141,6 @@
                 });
             }
         }, 10000); // 10秒检查一次，你可以根据需要调整间隔时间
-
     </script>
 </body>
 

@@ -3,12 +3,12 @@
   <div class="wrapper">
     <!-- 顶部功能区 -->
     <div class="top-area">
-      <func-area></func-area>
+      <func-area @start-stop-upload="startOrStopUpLoad" @upload-file-data="getUploadFileData"></func-area>
     </div>
 
     <!-- 进度条区 -->
-    <div class="process-area">
-      <process-area></process-area>
+    <div class="process-area" :class=" showProgress ? 'show-class'  : 'hidden-class'">
+      <process-area :file-data="fileData" :upload-flag="uploadFlag"></process-area>
     </div>
 
     <!-- 我们的产品 -->
@@ -39,6 +39,13 @@
 
   export default {
       name:'Index-Page',
+      data(){
+        return {
+          showProgress : false ,
+          uploadFlag : '0' ,
+          fileData : {},
+        }
+      },
       components:{
         'top-nav' : TopNavComponent,
         'process-area' : ProcessAreaComponent,
@@ -47,6 +54,20 @@
         'our-product' : OurProductComponent,
         'q-a-area' :QAComponent,
       },
+      methods : {
+        startOrStopUpLoad(flag){
+          //只要收到，就把进度条区域打开，然后再也不关上
+          if(flag){
+            this.showProgress = true;
+          }
+          //把数据传到子组件里去
+          this.uploadFlag = flag;
+        },
+        getUploadFileData(data){
+          //组件传上来的数据是data
+          this.fileData = data;
+        }
+      }
   }
 </script>
 
@@ -54,7 +75,14 @@
   .wrapper{
       width: 100%;
   }
-  
+  .hidden-class{
+    position: absolute;
+    opacity: 0;
+  }
+  .show-class{
+    position: relative;
+    opacity: 1;
+  }
 </style>
 
 

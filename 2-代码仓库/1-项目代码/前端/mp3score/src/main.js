@@ -5,7 +5,6 @@ import Router from '@/router/index'
 /*引入自动适应不同分辨率配置*/
 import '@/utils/rem'
 
-
 const app = createApp(App);
 
 app

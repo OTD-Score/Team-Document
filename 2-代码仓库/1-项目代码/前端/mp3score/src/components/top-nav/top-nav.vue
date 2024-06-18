@@ -2,15 +2,15 @@
     <div class="top-nav">
 
         <div class="name-wrapper">
-            <div class="logo-img"></div>
+            <img class="logo-img" src="@/assets/logo.png"/>
             <div class="name">MP3Score</div>
         </div>
         
         <div class="nav-wrapper">
-            <div class="nav-page">首页</div>
-            <div class="nav-page"><p>关于我们</p></div>
-            <div class="nav-page"><p>转录记录</p></div>
-            <div class="login-icon">登录</div>
+            <div class="nav-page" data-index="1" @click="navClick">首页</div>
+            <div class="nav-page" data-index="2" @click="navClick">关于我们</div>
+            <div class="nav-page" data-index="3" @click="navClick">转录记录</div>
+            <div class="login-icon" data-index="4" @click="navClick">登录</div>
         </div>
 
     </div>
@@ -18,7 +18,23 @@
   
   <script>
   export default {
-     name:'top-nav'
+     name:'top-nav',
+     methods : {
+        navClick(e){
+            let index = e.target.dataset.index ;
+            if(index == 1){
+                this.$router.push('/')
+            }else if(index == 2){
+                this.$router.push('/about')
+            }
+            else if(index == 3){
+                this.$router.push('/record')
+            }
+            else if(index == 4){
+                this.$router.push('/login')
+            }
+        }
+     }
   }
   </script>
   
@@ -41,13 +57,11 @@
         margin-left: 118px;
     }
     .logo-img{
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        background: red;
+        width: 40px;
+        height: 40px;
     }
     .name{
-        margin-left: 4px;
+        margin-left: 20px;
     }
     .nav-wrapper{
         display: flex;
@@ -59,6 +73,10 @@
         margin-right: 36px;
         color:rgba(101, 94, 78, 1)
     }
+    .nav-page:hover{
+        text-decoration: underline;
+    }
+
     .login-icon{    
         width: 74px;
         height: 34px;

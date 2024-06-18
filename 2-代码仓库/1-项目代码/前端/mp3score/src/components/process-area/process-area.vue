@@ -4,43 +4,40 @@
             <!-- 列表头 -->
             <div class="progress-area">
                 <div class="left-wrap">
-                    <div class="progress-lab">
-                        <img src="@/assets/progress-area/progress-icon.png" class="progress-icon">
-                        <p class="progress-num">29%</p>
+                    <div class="progress-lab" :class="{ 'progress-lab-animation' : (uploadFlag=='1' || uploadFlag=='2') }">
+                        <template v-if="uploadFlag=='1'">
+                            <p class="progress-num">运算中</p>
+                        </template>
+                        <template v-else-if="uploadFlag=='2'">
+                            <p class="progress-num">上传中</p>
+                        </template>
+                        <template v-else>
+                            <img src="@/assets/progress-area/progress-icon.png" class="progress-icon">
+                            <p class="progress-num">100%</p>
+                        </template>
                     </div>
                     <div class="file-size">
-                        <div>任务进行中</div>
-                        <div>8.3M</div>
+                        <div>{{ uploadFlag == '1' || '2' ? '任务进行中（请耐心等待）' : '任务已完成' }}</div>
+                        <div>{{ allSize + 'M' }}</div>
                     </div>
                 </div>
-                <div class="files-btn">
+                <!-- <div class="files-btn">
                     全部记录
-                </div>
+                </div> -->
             </div>
             <!-- 列表框 -->
             <div class="result-list">
                 <!-- 列表项 -->
-                <div class="result-item">
+                <div class="result-item" v-for="(file,index) in fileList" :v-key="index" >
                     <div class="result-left-wrap">
                         <img src="@/assets/progress-area/icon-midi.png" class="file-icon">
-                        <div class="file-name">夏天的风-温岚.mid</div>
+                        <div class="file-name">{{ file.name }}</div>
                     </div>
 
                     <div class="result-right-wrap">
-                        <img src="@/assets/progress-area/preview-btn.png" class="btn preview-btn"/>
-                        <img src="@/assets/progress-area/dowload-btn.png" class="btn dowload-btn"/>
-                    </div>
-                </div>
-                <!-- 列表项 -->
-                <div class="result-item">
-                    <div class="result-left-wrap">
-                        <img src="@/assets/progress-area/icon-midi.png" class="file-icon">
-                        <div class="file-name">菊次郎的夏天-piano.mid</div>
-                    </div>
-
-                    <div class="result-right-wrap">
-                        <img src="@/assets/progress-area/preview-btn.png" class="btn preview-btn"/>
-                        <img src="@/assets/progress-area/dowload-btn.png" class="btn dowload-btn"/>
+                        <!-- <img src="@/assets/progress-area/preview-btn.png" class="btn preview-btn"/> -->
+                        <img src="@/assets/progress-area/dowload-btn.png" :data-download-job_id="file.job_id" :data-download-name='file.name'
+                         :data-download-type="file.type" @click="dowloadFile" class="btn dowload-btn"/>
                     </div>
                 </div>
 
@@ -50,8 +47,64 @@
 </template>
 
 <script>
+import Req from '@/utils/request'
 export default{
     name:'processArea',
+    props : {
+        fileData : Object ,
+        uploadFlag : { //1-运算中 2-上传中 其他-完成了
+            type : String,
+            default : '1'
+        } ,
+    },
+    data(){
+        return {
+            fileList : []
+        }
+    },
+    computed : {
+        allSize(){
+            if(!this.fileList || this.fileList.length == 0){
+                return ;
+            }
+            let sumSize = 0 ;
+            for(let i=0;i<this.fileList.length;i++){
+                sumSize += this.fileList[i].size
+            }
+            return sumSize
+        }
+    },
+    watch : {
+        fileData(newData,oldData){
+            if(!newData){
+                return;
+            }
+            if(newData.job_id){
+                //如果存在job_id,
+                let index = newData.fileIndex ;
+                this.fileList[index].job_id = newData.job_id ;
+            }else{
+                let type = newData.type
+                let name = newData.name.split('.')[0].concat(`.${type}`) ;
+                let size = parseFloat((newData.size/1024/1024).toFixed(2)) ;
+                this.fileList.push({name,size,type})
+            }
+        }
+    }, 
+    methods : {
+        dowloadFile(e){
+            let job_id = e.target.dataset.downloadJob_id ;
+            let name = e.target.dataset.downloadName ;
+            let request_file_type = e.target.dataset.downloadType  ;//请求的接口名是/midi ,但是文件后缀是.mid
+            let download_file_type = request_file_type == 'midi' ? 'mid' : request_file_type ; //请求的接口名是/midi ,但是文件后缀是.mid
+            if(!job_id){
+                window.alert('请等待完成后再下载')
+                return;
+            }
+            return Req.fileDownLoad_Klangio(job_id,request_file_type,download_file_type,name)
+        }
+    }
+
 }
 </script>
 
@@ -92,6 +145,17 @@ export default{
     .progress-icon{
         width: 54px;
         height: 54px;
+    }
+
+    .progress-lab-animation{
+        background: linear-gradient(rgb(12, 132, 223) 0 0) 0/0% no-repeat rgba(101, 94, 78, 1);
+        animation: cartoon 2s infinite linear;
+    }
+
+    @keyframes cartoon {
+        100% {
+        background-size: 100%;
+        }
     }
     .progress-num{
         font-size: 39px;

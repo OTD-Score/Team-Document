@@ -19,7 +19,7 @@
         <div class="item item-1">
           <div class="title">联系我们</div>
           <div class="nav-item">联系方式：15575936492</div>
-          <div class="nav-item">邮箱：569513303@qq.com</div>
+          <div class="nav-item">邮箱：ysho123@aliyun.com</div>
           <div class="nav-item">地址：湖南省长沙市长沙理工大学</div>
         </div>
 

@@ -18,17 +18,29 @@ const router = createRouter({
     routes ,
 })
 
+let firstIn = true ; 
+
 // 路由守卫
-// router.beforeEach((to,from,next)=>{
-//     const isLogin=localStorage.MP3SCORE_login?true:false;
-//     if(to.path=='/login'){
-//         next();
-//     }else{
-//         //是否在登录状态下
-//         isLogin?next():next('/login');
-//     }
-// }
-// );
+router.beforeEach((to,from,next)=>{
+    if(firstIn){
+        firstIn = false
+        next();
+    }else{
+        if(to.path === from.path){
+            return false;
+        }else{
+            next();
+        }
+    }
+    
+    // if(to.path=='/login'){
+    //     next();
+    // }else{
+    //     //是否在登录状态下
+    //     isLogin?next():next('/login');
+    // }
+}
+);
 
 // 路由守卫
 // router.beforeEach((to, from, next) => {

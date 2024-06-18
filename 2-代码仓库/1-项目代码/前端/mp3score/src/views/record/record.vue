@@ -29,8 +29,8 @@
                         <a-progress :percent="50" status="active"></a-progress>
                     </div>
 
-                    <img src="@/assets/progress-area/preview-btn.png" class="btn preview-btn"/>
-                    <img src="@/assets/progress-area/dowload-btn.png" class="btn dowload-btn"/>
+                    <img src="@/assets/record/btn-success-preview.png" class="btn preview-btn"/>
+                    <img src="@/assets/record/btn-success-download.png" class="btn dowload-btn"/>
 
                     <div class="date">2024-01-30</div>
                 </div>
@@ -55,14 +55,14 @@
                         <a-progress :percent="100"></a-progress>
                     </div>
 
-                    <img src="@/assets/progress-area/preview-btn.png" class="btn preview-btn"/>
-                    <img src="@/assets/progress-area/dowload-btn.png" class="btn dowload-btn"/>
+                    <img src="@/assets/record/btn-success-preview.png" class="btn preview-btn"/>
+                    <img src="@/assets/record/btn-success-download.png" class="btn dowload-btn"/>
 
                     <div class="date">2024-01-30</div>
 
                 </div>
                 <!-- 失败订单 -->
-                <div class="order-item order-item-fail">
+                <div class="order-item order-item-fail" v-for="item in 1">
                     <img src="@/assets/record/icon-mp3.png" class="icon-mp3">
 
                     <div class="item-name-area">
@@ -81,8 +81,8 @@
                         <a-progress :percent="100"  status="exception"></a-progress>
                     </div>
 
-                    <img src="@/assets/progress-area/preview-btn.png" class="btn preview-btn"/>
-                    <img src="@/assets/progress-area/dowload-btn.png" class="btn dowload-btn"/>
+                    <img src="@/assets/record/btn-fail-preview.png" class="btn preview-btn"/>
+                    <img src="@/assets/record/btn-fail-download.png" class="btn dowload-btn"/>
 
                     <div class="date">2024-01-30</div>
 
@@ -143,6 +143,7 @@ export default {
         margin-top: 23px;
         position: relative;
         z-index: 99;
+        padding-bottom:85px ;
     }
     .order-item{
         position: relative;

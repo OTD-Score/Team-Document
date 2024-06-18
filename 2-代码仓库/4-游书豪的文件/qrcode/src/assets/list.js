@@ -2,38 +2,31 @@
 
 function getFileList(type = '21M',id){
     //type = '21M' "51M" "65M" "CYC" "ZJC" "LYC" "SYC" "ZZXC" "PM180" "BP450" "DF20"
-    if(type==='21M'){
-        return M21
-    }
-    if(type==='51M'){
-        return M51
-    }
-    if(type==='65M'){
-        return M65
-    }
-    if(type==='CYC'){
-        return CYC
-    }
-    if(type==='ZJC'){
-        return ZJC
-    }
-    if(type==='LYC'){
-        return LYC
-    }
-    if(type==='SYC'){
-        return SYC
-    }
-    if(type==='ZZXC'){
-        return ZZXC
-    }
-    if(type==='PM180'){
-        return PM180
-    }
-    if(type==='BP450'){
-        return BP450
-    }
-    if(type==='DF20'){
-        return DF20
+    switch(type){
+        case '21M':
+            return M21;
+        case '51M':
+            return M51;
+        case '65M':
+            return M65;
+        case 'CYC':
+            return CYC;
+        case 'ZJC':
+            return ZJC;
+        case 'LYC':
+            return LYC;
+        case 'SYC':
+            return SYC;
+        case 'ZZXC':
+            return ZZXC;
+        case 'PM180':
+            return PM180;
+        case 'BP450':
+            return BP450;
+        case 'DF20':
+            return DF20;
+        case 'DG55':
+            return DG55;
     }
 }
 
@@ -478,6 +471,27 @@ let DF20 = [
         size: '218KB',
         url: base_url + '/11-三桶油水带敷设车/'
     },
+]
+let DG55 = [
+    {
+        name:'三一重工55米登高平台消防车技术规格书V4-202405（SYM5430JXFDG55+沃尔沃FM500+100泵).docx',
+        type:'word',
+        size: '2.1M',
+        url: base_url + '/12-三桶油登高55/'
+    },
+    {
+        name:'四桥登高平台消防车产品介绍.docx',
+        type:'word',
+        size: '976KB',
+        url: base_url + '/12-三桶油登高55/'
+    },
+    {
+        name:'整车检测报告.pdf',
+        type:'pdf',
+        size: '1.2M',
+        url: base_url + '/12-三桶油登高55/'
+    },
+    
 ]
 export default getFileList
 

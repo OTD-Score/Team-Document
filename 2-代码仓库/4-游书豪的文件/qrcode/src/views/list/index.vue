@@ -41,6 +41,7 @@
             clickEv(name,url){
                 console.log(url + name);
                 window.open('http://www.pfile.com.cn/api/profile/onlinePreview?url='+encodeURIComponent(url + name));
+                // window.open("https://view.xdocin.com/view?src=" + encodeURIComponent(url + name));
             },
         }
     }

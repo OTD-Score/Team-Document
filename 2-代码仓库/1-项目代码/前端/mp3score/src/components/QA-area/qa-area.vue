@@ -10,30 +10,18 @@
 
             <div class="content-box-box">
                 <div class="left-box">
-                    <div class="left-item">常见问题</div>
-                    <div class="left-item">我们的产品</div>
-                    <div class="left-item">工作原理</div>
-                    <div class="left-item">关于我们</div>
+                    <div class="left-item" :class="{'item-active' : choosIndex == '1'}" @click="choosIndex='1'">常见问题</div>
+                    <div class="left-item" :class="{'item-active' : choosIndex == '2'}" @click="choosIndex='2'">我们的产品</div>
+                    <div class="left-item" :class="{'item-active' : choosIndex == '3'}" @click="choosIndex='3'">工作原理</div>
+                    <div class="left-item" :class="{'item-active' : choosIndex == '4'}" @click="choosIndex='4'">关于我们</div>
                 </div>
 
                 <div class="right-box">
                     <!-- Colapse下拉文字 -->
                     <div class="colapse-wrapper">
                         <a-collapse ghost v-model:activeKey="activeKey" expand-icon-position="end">
-                            <a-collapse-panel key="1" header="This is panel header 1">
-                                <p>{{ text }}</p>
-                            </a-collapse-panel>
-                            <a-collapse-panel key="2" header="This is panel header 2">
-                                <p>{{ text }}</p>
-                            </a-collapse-panel>
-                            <a-collapse-panel key="3" header="This is panel header 2">
-                                <p>{{ text }}</p>
-                            </a-collapse-panel>
-                            <a-collapse-panel key="4" header="This is panel header 2">
-                                <p>{{ text }}</p>
-                            </a-collapse-panel>
-                            <a-collapse-panel key="5" header="This is panel header 2">
-                                <p>{{ text }}</p>
+                            <a-collapse-panel v-for="(item,index) in QaList" :key="index" :header="item.title">
+                                <p>{{ item.text }}</p>
                             </a-collapse-panel>
                         </a-collapse>
                     </div>
@@ -50,9 +38,46 @@ export default{
     name:'qa-area',
     data(){
         return {
-            text : '我是祝杰伦'
+            choosIndex : '1',
+            activeKey : 1,
         }
     }, 
+    computed :{
+        QaList(){
+            if(this.choosIndex == '1'){
+                return [
+                    {
+                        title : '什么是Mp3转MIDI',
+                        text : 'Mp3转MIDI是将Mp3文件通过机器学习算法，转译成可编辑的MIDI文件，可以通过FL、Cubase等软件打开'
+                    },
+                    {
+                        title : '什么是Mp3转MIDI',
+                        text : 'Mp3转MIDI是将Mp3文件通过机器学习算法，转译成可编辑的MIDI文件，可以通过FL、Cubase等软件打开'
+                    },
+                    {
+                        title : '什么是Mp3转MIDI',
+                        text : 'Mp3转MIDI是将Mp3文件通过机器学习算法，转译成可编辑的MIDI文件，可以通过FL、Cubase等软件打开'
+                    },
+                    {
+                        title : '什么是Mp3转MIDI',
+                        text : 'Mp3转MIDI是将Mp3文件通过机器学习算法，转译成可编辑的MIDI文件，可以通过FL、Cubase等软件打开'
+                    },
+                    {
+                        title : '什么是Mp3转MIDI',
+                        text : 'Mp3转MIDI是将Mp3文件通过机器学习算法，转译成可编辑的MIDI文件，可以通过FL、Cubase等软件打开'
+                    },
+                    {
+                        title : '什么是Mp3转MIDI',
+                        text : 'Mp3转MIDI是将Mp3文件通过机器学习算法，转译成可编辑的MIDI文件，可以通过FL、Cubase等软件打开'
+                    },
+                    {
+                        title : '什么是Mp3转MIDI',
+                        text : 'Mp3转MIDI是将Mp3文件通过机器学习算法，转译成可编辑的MIDI文件，可以通过FL、Cubase等软件打开'
+                    },
+                ]
+            }
+        }
+    },
     components:{
         'a-collapse' : Collapse,
         'a-collapse-panel' : CollapsePanel
@@ -67,6 +92,7 @@ export default{
         flex-direction: column;
         align-items: center;
         box-sizing: border-box;
+        min-height: 595px;
     }
     .abo{
         position: absolute;
@@ -123,6 +149,12 @@ export default{
         color: rgba(101, 94, 78, 1);
         text-align: center;
         line-height: 40px;
+    }
+    .left-item:hover{
+        text-decoration: underline;
+    }
+    .item-active{
+        background:linear-gradient(180deg,rgba(240,255,242,1)66.67%,rgba(171,196,170,1)100%);
     }
     .right-box{
         margin-left: 50px;

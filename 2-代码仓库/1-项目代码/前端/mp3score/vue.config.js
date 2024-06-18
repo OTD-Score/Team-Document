@@ -37,4 +37,15 @@ module.exports = {
       },
     },
   },
+  devServer: {
+    proxy: {
+      '/api': {
+        target: 'https://api.klang.io/', // 目标后端服务器地址
+        changeOrigin: true, // 改变Origin来解决跨域问题
+        pathRewrite: {
+          '^/api': '' // 重写路径
+        }
+      }
+    }
+  }
 };

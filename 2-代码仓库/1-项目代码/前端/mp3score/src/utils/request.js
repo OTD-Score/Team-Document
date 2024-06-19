@@ -7,7 +7,9 @@ import axios from 'axios'
 
 
 //baseUrl 根据不同环境引入不同api 自动从打包配置中读取
-const baseUrl =  'http://114.55.130.141:8080' ;
+// const baseUrl =  'http://114.55.130.141:8080' ;
+
+let baseUrl = "/";
 
 
 const BASE = {
@@ -53,24 +55,16 @@ const utils = {
         return service.get(baseUrl + BASE[url],data)
     },
 
-    fileUpLoad(url,formData){
-        return axios.post('https://instantly-stirred-gnat.ngrok-free.app' + url, formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-        })
-    },
-
     getReq_Klangio(url,job_id){
-        return axios.get(`api/job/${job_id}/${url}`,{
+        return axios.get(`${baseUrl}api/job/${job_id}/${url}`,{
             headers: {
               'Kl-Api-Key' : KlangIo_API
             }
         })
     },
 
-    fileUpLoad_Klangio(model = 'piano',formData){ //前端请求在vue.config.js里配置了代理,api/开头的请求会转发到代理，解决跨域
-        return axios.post('api/transcription?model=' + model, formData, {
+    fileUpLoad_Klangio(model = 'piano',formData){ //前端请求在vue.config.js里配置了代理,/api开头的请求会转发到代理，解决跨域
+        return axios.post(`${baseUrl}api/transcription?model=${model}`, formData, {
             headers: {
               'Content-Type': 'multipart/form-data',
               'Kl-Api-Key' : KlangIo_API
@@ -79,7 +73,7 @@ const utils = {
     },
 
     fileDownLoad_Klangio(job_id,dowload_type='midi',output_type='mid',file_name){
-        axios.get(`api/job/${job_id}/${dowload_type}`,{
+        axios.get(`${baseUrl}api/job/${job_id}/${dowload_type}`,{
             headers: {
                 'Kl-Api-Key' : KlangIo_API
             },
@@ -100,7 +94,7 @@ const utils = {
     },
 
     // 轮询函数，每隔一定时间执行一次，直至返回的promise成功解决
-    pollApi(apiCall, condition, interval = 3000) {
+    pollApi(apiCall, condition, interval = 4000) {
         return new Promise((resolve, reject) => {
             const poll = () => {
             apiCall().then(response => {

@@ -47,7 +47,7 @@
         <!--*******注意路径********-->
         <!--生成全部表tableName设为%。注意：不使用%，需要设置指定数据库表，之前生成的代码有部分修改，勿覆盖-->
         <!--*******注意表名********-->
-        <table tableName="product_info">
+        <table tableName="user">
             <generatedKey column="id" sqlStatement="MySql" identity="true"/>
         <!--*******注意表名********-->
         </table>

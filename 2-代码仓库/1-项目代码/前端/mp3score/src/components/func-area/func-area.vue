@@ -9,40 +9,76 @@
         <!-- 拖文件的功能区 -->
         <div class="func-area">
             <div class="section">
-                <div class="section-item" :class="{'section-item-active' : chooseIndex == '1' }" data-index="1" @click="chooseFuc">音频转MIDI</div>
-                <div class="section-item" :class="{'section-item-active' : chooseIndex == '2' }" data-index="2" @click="chooseFuc">音频转PDF</div>
-                <div class="section-item" :class="{'section-item-active' : chooseIndex == '3' }" data-index="3" @click="chooseFuc">音频分离</div>
+                <div class="section-item" :class="{'section-item-active' : chooseIndex == '1' }" data-index="1" @click="chooseFuc">音频转谱</div>
+                <div class="section-item" :class="{'section-item-active' : chooseIndex == '2' }" data-index="2" @click="chooseFuc">音轨分离</div>
+                <div class="section-item" :class="{'section-item-active' : chooseIndex == '3' }" data-index="3" @click="chooseFuc">扒和弦</div>
                 <div class="section-item" :class="{'section-item-active' : chooseIndex == '4' }" data-index="4" @click="chooseFuc">AI音乐生成</div>
             </div>
             <!-- 音频转MIDI拖区 -->
-            <div class="audio2midi" v-if="chooseIndex == '1' || chooseIndex == '2'">
+            <div class="content-fuc-wrapper" v-if="chooseIndex == '1'">
               <div class="file-drag">
                   <img src="@/assets/index/music-icon.png" class="music-icon"/>
                   <img src="@/assets/index/music-hint.png" class="music-hint"/>
                   <input class="file-input" type="file" accept="audio/mpeg, audio/wav" @change="fileUpload">
               </div>
-              <div class="options" style="position:relative;left: -8px;">
+              <div class="options" style="position:relative;margin-top: 10px;">
+                <div>输入：</div>
                 <div class="options-a">
-                    <input type="radio" id="piano" value="1" v-model="modelChoose" >
+                    <input type="radio" id="piano" class="radio-r" value="piano" v-model="model" >
                     <label for="option1">纯钢琴</label>
                 </div>
-                <div style="margin-left: 15px;">
-                    <input type="radio" id="guitar" value="2" v-model="modelChoose">
+                <div class="options-a">
+                    <input type="radio" id="guitar" class="radio-r"  value="guitar" v-model="model">
                     <label for="option2">纯吉他</label>
                 </div>
-                <div>
-                    <input type="radio" id="bass" value="3" v-model="modelChoose">
+                <div class="options-a">
+                    <input type="radio" id="bass" class="radio-r"  value="bass" v-model="model">
                     <label for="option1">纯贝斯</label>
                 </div>
-                <div style="margin-left: 15px;">
-                    <input type="radio" id="vocal" value="4" v-model="modelChoose">
+                <div class="options-a">
+                    <input type="radio" id="vocal" class="radio-r"  value="vocal" v-model="model">
                     <label for="option2">纯人声</label>
+                </div>
+                <div class="options-a">
+                    <input type="radio" id="ai" class="radio-r"  value="detect" v-model="model">
+                    <label for="option2">AI识别</label>
                 </div>
                 <!-- <input type="button" @click="startQuery"> -->
               </div>
-              <div style="margin-left: 6px;margin-top: 6px;">建议上传纯钢琴曲，效果更佳</div>
+
+              <div class="options" style="position:relative;margin-top: 10px;">
+                <div>输出：</div>
+                <div class="options-a">
+                    <input type="radio" id="pdf" class="radio-r" value="pdf" v-model="outputs" >
+                    <label for="option1">PDF</label>
+                </div>
+                <div class="options-a">
+                    <input type="radio" id="midi" class="radio-r"  value="midi" v-model="outputs">
+                    <label for="option2">MIDI</label>
+                </div>
+                <div class="options-a">
+                    <input type="radio" id="xml" class="radio-r"  value="mxml" v-model="outputs">
+                    <label for="option1">XML</label>
+                </div>
+                <div class="options-a">
+                    <input type="radio" id="gp5" class="radio-r"  value="gp5" v-model="outputs">
+                    <label for="option2">GP5</label>
+                </div>
+                <!-- <input type="button" @click="startQuery"> -->
+              </div>
+              <div style="margin-top: 10px;">建议上传纯钢琴曲，效果更佳</div>
+            </div>
+
+            <!-- 音轨分离 -->
+            <div class="content-fuc-wrapper" v-else-if="chooseIndex == '2'">
+              <div class="file-drag">
+                  <img src="@/assets/index/music-icon.png" class="music-icon"/>
+                  <img src="@/assets/index/music-hint.png" class="music-hint"/>
+                  <input class="file-input" type="file" accept="audio/mpeg, audio/wav" @change="fileUpload">
+              </div>
 
             </div>
+
             <!-- 其他功能区 -->
             <div class="othes-func" v-else>
               <div class="file-drag">
@@ -64,41 +100,23 @@ export default{
     data(){
       return {
         chooseIndex : '1', //1音频转midi 2音频转pdf 
-        modelChoose : '1',//1纯钢琴 2纯吉他 3纯贝斯 4纯人声
         fileList : [],
         fileUpLoading : false ,
         job_id : '',//当前任务ID
+
+        model : 'piano',
+        outputs : 'pdf',
       }
     },
     computed : {
-      outputs(){ //返回文件类型后缀
-        switch (this.chooseIndex) {
-          case '1':
-            return 'midi'
-          case '2':
-            return 'pdf'
-        }
-        return 'midi'
-      },
-      modelinputs(){
-        switch (this.modelChoose) {
-          case '1':
-            return 'piano'
-          case '2':
-            return 'guitar'
-          case '3':
-            return 'bass'
-          case '4':
-            return 'vocal'
-        }
-        return 'piano'
-      }
+
     },  
     methods : {
       chooseFuc(e){
         let chooseIndex = e.target.dataset.index || '1' ;
         this.chooseIndex = chooseIndex ;
       },
+
       fileUpload(e){
         let _this = this ;
         const originalFile = e.target.files[0] || null;
@@ -117,7 +135,7 @@ export default{
         this.$nextTick(()=>{
           //把文件数据传出去给进度条那边展示
           let fileData = {
-            name : originalFile.name,
+            name : originalFile.name.split('.')[0],
             size : originalFile.size,
             fileIndex : fileIndex,
             type : _this.outputs
@@ -127,14 +145,15 @@ export default{
           //创建formData
           const formData = new FormData();
           formData.append('file', originalFile);
-          formData.append('outputs',this.outputs);
           
           //网络进度
-          Req.fileUpLoad_Klangio(this.modelinputs,formData)
+          Req.fileUpLoad_Klangio(this.model,formData,this.outputs)
           .then(response => {
             // 处理响应数据
-            if(response.status == 200){
-              let job_id = response.data.job_id ;
+            if(response.status === 200){
+              const res = response.data;
+
+              let job_id = res.data.job_id ;
               this.startQuery(job_id);
             }else{
               throw new Error();
@@ -151,13 +170,13 @@ export default{
           });
         })
       },
+
       startQuery(job_id){
         let _this = this ;
-        const getStatus = () => {return Req.getReq_Klangio('status',job_id)};
+        const getStatus = () => {return Req.getReq_Klangio('getJobStatus',job_id)};
         const condition =  data => data.status === 'COMPLETED' ;
         
         Req.pollApi(getStatus,condition).then(()=>{
-          //轮询，只到COMPLETED才开始下一步
           // 将job_id发到外面组件
           let file_data = {
             fileIndex : fileIndex++,
@@ -170,6 +189,7 @@ export default{
           _this.fileUpLoading = false ;
         });
       },
+
       emitThings(key,data){
         this.$emit(key,data);
       }
@@ -220,11 +240,12 @@ export default{
     display:block;
     width: 322px;
     height: 239px;
-    margin-right: 158px;
+
   }
   .func-area{
-    width:511px;
-    height:368px;
+    margin-left: 188px;
+    width:548px;
+    height:468px;
     background: rgba(255, 255, 255, 0.35);
     border-radius: 8px;
     box-shadow:inset 0px 0px 4px 2px rgba(255, 255, 255, 0.15), 0px 6px 15px  rgba(0, 0, 0, 0.25);
@@ -233,7 +254,7 @@ export default{
     flex-direction: column;
     align-items: center;
   }
-  .audio2midi{
+  .content-fuc-wrapper{
     margin-top: 8px;
   }
   .section{
@@ -270,7 +291,7 @@ export default{
     flex-direction:column;
     align-items:center;
     width: 463px;
-    height:216px;
+    height:263px;
     border-radius: 7.92px;
     border: 1px dashed rgba(176, 164, 141, 1);
     background: rgba(255, 255, 255,0);
@@ -304,11 +325,18 @@ export default{
     display: flex;
     align-self: flex-start;
     margin-top: 13px;
-    justify-content: space-around;
   }
 
   .options-a{
     display: flex;
     align-items: center;
+    margin-right: 12px;
+  }
+
+  .radio-r{
+    width: 25px;
+    height: 25px;
+    margin: 0;
+    margin-right: 4px;
   }
 </style>

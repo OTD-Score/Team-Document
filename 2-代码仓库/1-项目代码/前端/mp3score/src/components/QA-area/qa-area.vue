@@ -39,25 +39,13 @@ export default{
     data(){
         return {
             choosIndex : '1',
-            activeKey : 1,
+            activeKey : 0,
         }
     }, 
     computed :{
         QaList(){
             if(this.choosIndex == '1'){
                 return [
-                    {
-                        title : '什么是Mp3转MIDI',
-                        text : 'Mp3转MIDI是将Mp3文件通过机器学习算法，转译成可编辑的MIDI文件，可以通过FL、Cubase等软件打开'
-                    },
-                    {
-                        title : '什么是Mp3转MIDI',
-                        text : 'Mp3转MIDI是将Mp3文件通过机器学习算法，转译成可编辑的MIDI文件，可以通过FL、Cubase等软件打开'
-                    },
-                    {
-                        title : '什么是Mp3转MIDI',
-                        text : 'Mp3转MIDI是将Mp3文件通过机器学习算法，转译成可编辑的MIDI文件，可以通过FL、Cubase等软件打开'
-                    },
                     {
                         title : '什么是Mp3转MIDI',
                         text : 'Mp3转MIDI是将Mp3文件通过机器学习算法，转译成可编辑的MIDI文件，可以通过FL、Cubase等软件打开'

@@ -71,7 +71,7 @@ export default{
             for(let i=0;i<this.fileList.length;i++){
                 sumSize += this.fileList[i].size
             }
-            return sumSize
+            return sumSize;
         }
     },
     watch : {
@@ -94,9 +94,12 @@ export default{
     methods : {
         dowloadFile(e){
             let job_id = e.target.dataset.downloadJob_id ;
-            let name = e.target.dataset.downloadName ;
-            let request_file_type = e.target.dataset.downloadType  ;//请求的接口名是/midi ,但是文件后缀是.mid
-            let download_file_type = request_file_type == 'midi' ? 'mid' : request_file_type ; //请求的接口名是/midi ,但是文件后缀是.mid
+            let name = e.target.dataset.downloadName.split('.')[0] ;
+            let downloadType = e.target.dataset.downloadType ;
+
+            let request_file_type = (downloadType == 'mxml' ? 'xml' : downloadType);  ; //transcrip的时候叫mxml , dowload的时候叫xml
+            let download_file_type = (downloadType == 'midi' ? 'mid' : downloadType) ; //请求的接口名是/midi ,但是文件后缀是.mid
+
             if(!job_id){
                 window.alert('请等待完成后再下载')
                 return;

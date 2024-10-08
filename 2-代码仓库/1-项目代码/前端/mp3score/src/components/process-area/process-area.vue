@@ -97,14 +97,25 @@ export default{
             let name = e.target.dataset.downloadName.split('.')[0] ;
             let downloadType = e.target.dataset.downloadType ;
 
-            let request_file_type = (downloadType == 'mxml' ? 'xml' : downloadType);  ; //transcrip的时候叫mxml , dowload的时候叫xml
-            let download_file_type = (downloadType == 'midi' ? 'mid' : downloadType) ; //请求的接口名是/midi ,但是文件后缀是.mid
+            let request_file_type = (downloadType == 'mxml' ? 'xml' : downloadType);  ; //接口后缀   transcrip的时候叫mxml , dowload的时候叫xml
+
+            let download_file_type = this.suffixHandeler(downloadType); //文件后缀   请求的接口名是/midi ,但是文件后缀是.mid
 
             if(!job_id){
                 window.alert('请等待完成后再下载')
                 return;
             }
             return Req.fileDownLoad_Klangio(job_id,request_file_type,download_file_type,name)
+        },
+        suffixHandeler(filename){
+            switch(filename) {
+                case 'midi':
+                    return 'mid' ;
+                case 'mxml':
+                    return 'xml'
+                default:
+                    return filename ;
+            }
         }
     }
 

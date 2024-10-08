@@ -76,7 +76,31 @@
                   <img src="@/assets/index/music-hint.png" class="music-hint"/>
                   <input class="file-input" type="file" accept="audio/mpeg, audio/wav" @change="fileUpload">
               </div>
+              <div class="options" style="position:relative;margin-top: 10px;">
+                <div>分离模型：</div>
+                <div>
+                  <div class="options-a">
+                      <input type="radio" id="piano" class="radio-r" value="piano" v-model="model" >
+                      <label for="option1">4轨（人声、贝斯、鼓、其他）</label>
+                  </div>
+                  <div class="options-a" style="margin-top:8px">
+                      <input type="radio" id="guitar" class="radio-r"  value="guitar" v-model="model">
+                      <label for="option2">6轨（人声、贝斯、鼓、钢琴、吉他、其他）</label>
+                  </div>
+                </div>
+              </div>
 
+              <div class="options" style="position:relative;margin-top: 10px;">
+                <div>结果输出：</div>
+                <div class="options-a">
+                    <input type="radio" id="pdf" class="radio-r" value="pdf" v-model="outputs" >
+                    <label for="option1">MP3</label>
+                </div>
+                <div class="options-a">
+                    <input type="radio" id="midi" class="radio-r"  value="midi" v-model="outputs">
+                    <label for="option2">WAV</label>
+                </div>
+              </div>
             </div>
 
             <!-- 其他功能区 -->

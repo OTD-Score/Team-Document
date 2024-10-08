@@ -7,8 +7,6 @@ import axios from 'axios'
 
 
 //baseUrl 根据不同环境引入不同api 自动从打包配置中读取
-// const baseUrl =  'http://114.55.130.141:8080' ;
-
 let baseUrl = "/";
 if(process.env.NODE_ENV === 'production'){
     baseUrl = 'http://114.55.130.141:8080/';
